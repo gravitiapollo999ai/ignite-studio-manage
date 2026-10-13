@@ -51,9 +51,46 @@ export const balanceQuery = (userId: string) =>
     },
   });
 
+/** Known backend/auth messages → [English, Spanish]. Anything unknown becomes a generic, translated message
+ *  (raw technical errors are logged to the console, never shown to users). */
+const KNOWN: Array<[RegExp, string, string]> = [
+  [/insufficient credits/i, "You don't have enough credits.", "No tienes créditos suficientes."],
+  [/balance cannot go below zero/i, "The balance can't go below zero.", "El saldo no puede quedar por debajo de cero."],
+  [/note required|reason required/i, "A note is required.", "Se requiere una nota."],
+  [/amount cannot be zero/i, "Amount can't be zero.", "La cantidad no puede ser cero."],
+  [/admins or managers only|admins only|row-level security|permission denied/i, "You don't have permission to do that.", "No tienes permiso para hacer eso."],
+  [/cannot remove the last admin/i, "You can't remove the last admin.", "No puedes quitar al último administrador."],
+  [/user not found/i, "User not found.", "Usuario no encontrado."],
+  [/not signed in|jwt|session|unauthorized/i, "Your session expired. Please sign in again.", "Tu sesión expiró. Vuelve a iniciar sesión."],
+  [/invalid login credentials/i, "Wrong email or password.", "Correo o contraseña incorrectos."],
+  [/email not confirmed/i, "Please confirm your email first.", "Primero confirma tu correo."],
+  [/user already registered/i, "That email is already registered.", "Ese correo ya está registrado."],
+  [/password should be|weak password/i, "Password is too weak (min. 6 characters).", "La contraseña es muy débil (mín. 6 caracteres)."],
+  [/same.*password|different from the old/i, "Use a different password than your current one.", "Usa una contraseña distinta a la actual."],
+  [/rate limit|too many/i, "Too many attempts. Please wait a minute.", "Demasiados intentos. Espera un minuto."],
+  [/duration must be between/i, "Video length is out of range.", "La duración del video está fuera de rango."],
+  [/reference image required/i, "Upload a reference image of the subject.", "Sube una imagen de referencia del sujeto."],
+  [/source link required/i, "Paste a video link.", "Pega un enlace de video."],
+  [/invalid source file/i, "Upload your video again.", "Vuelve a subir tu video."],
+  [/subject name required/i, "Enter the subject name.", "Ingresa el nombre del sujeto."],
+  [/no tries left/i, "No tries left for this video.", "No quedan intentos para este video."],
+  [/only delivered jobs/i, "Only delivered videos can be revised.", "Solo se pueden revisar videos entregados."],
+  [/request (already decided|not pending)/i, "This request was already decided.", "Esta solicitud ya fue resuelta."],
+  [/payload too large|exceeded the maximum|too large/i, "The file is too large.", "El archivo es demasiado grande."],
+  [/failed to fetch|network/i, "Connection problem. Check your internet and try again.", "Problema de conexión. Revisa tu internet e inténtalo de nuevo."],
+];
+
+export function friendlyError(raw: string, lang: "en" | "es"): string {
+  const hit = KNOWN.find(([re]) => re.test(raw));
+  if (hit) return lang === "es" ? hit[2] : hit[1];
+  return lang === "es" ? "Algo salió mal. Inténtalo de nuevo." : "Something went wrong. Please try again.";
+}
+
 export function errMsg(e: unknown): string {
-  if (e && typeof e === "object" && "message" in e) return String((e as { message: string }).message);
-  return "Something went wrong";
+  const raw = e && typeof e === "object" && "message" in e ? String((e as { message: string }).message) : String(e ?? "");
+  if (raw) console.error("[app error]", raw);
+  const lang = typeof document !== "undefined" && document.documentElement.lang === "es" ? "es" : "en";
+  return friendlyError(raw, lang);
 }
 
 export async function signedUrl(bucket: string, path: string, expires = 3600) {

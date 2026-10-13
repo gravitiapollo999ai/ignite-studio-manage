@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Empty, RequestBadge } from "@/components/site";
-import { brandTitle } from "@/lib/data";
+import { brandTitle , errMsg } from "@/lib/data";
 import { useI18n, pkgText } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/credit-requests")({
@@ -37,7 +37,7 @@ function Requests() {
     const note = notes[id]?.trim() || null;
     if (!approve && !note) return toast.error(t("Add a note explaining the rejection", "Agrega una nota explicando el rechazo"));
     const { error } = approve ? await supabase.rpc("approve_credit_request", { _id: id, _note: note as string }) : await supabase.rpc("reject_credit_request", { _id: id, _note: note! });
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(errMsg(error));
     toast.success(approve ? t("Approved — credits added", "Aprobado — créditos agregados") : t("Request rejected", "Solicitud rechazada"));
     qc.invalidateQueries({ queryKey: ["admin-cr"] });
     qc.invalidateQueries({ queryKey: ["admin-cr-pending-count"] });

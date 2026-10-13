@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { brandTitle } from "@/lib/data";
+import { brandTitle , errMsg } from "@/lib/data";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/account")({
@@ -36,7 +36,7 @@ function Account() {
     setBusy(true);
     const { error } = await supabase.from("profiles").update(p.data).eq("id", user.id);
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(errMsg(error));
     toast.success(t("Profile saved", "Perfil guardado"));
     qc.invalidateQueries({ queryKey: ["profile", user.id] });
   }
@@ -47,7 +47,7 @@ function Account() {
     if (pw.length < 6) return toast.error(t("At least 6 characters", "Al menos 6 caracteres"));
     if (pw !== f.get("confirm")) return toast.error(t("Passwords don't match", "Las contraseñas no coinciden"));
     const { error } = await supabase.auth.updateUser({ password: pw });
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(errMsg(error));
     toast.success(t("Password changed", "Contraseña actualizada"));
     e.currentTarget.reset();
   }

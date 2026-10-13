@@ -38,7 +38,7 @@ function AuthPage() {
     setBusy(true);
     const { error } = await supabase.auth.signInWithPassword(p.data);
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(errMsg(error));
     toast.success(t("Welcome back", "Bienvenido de nuevo"));
     nav({ to: "/dashboard" });
   }

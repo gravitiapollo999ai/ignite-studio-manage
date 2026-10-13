@@ -42,11 +42,11 @@ function SettingsPage() {
   async function save(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const p = schema.safeParse(Object.fromEntries(new FormData(e.currentTarget)));
-    if (!p.success) return toast.error(`${p.error.issues[0].path[0]}: ${p.error.issues[0].message}`);
+    if (!p.success) return toast.error(t(`Check the "${String(p.error.issues[0].path[0])}" field`, `Revisa el campo "${String(p.error.issues[0].path[0])}"`));
     setBusy(true);
     const { error } = await supabase.from("settings").update(p.data).eq("id", 1);
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(errMsg(error));
     toast.success(t("Settings saved", "Configuración guardada"));
     qc.invalidateQueries({ queryKey: ["settings"] });
   }
