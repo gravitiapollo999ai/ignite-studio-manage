@@ -38,7 +38,7 @@ function Packages() {
   async function save(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const p = schema.safeParse(Object.fromEntries(new FormData(e.currentTarget)));
-    if (!p.success) return toast.error(`${p.error.issues[0].path[0]}: ${p.error.issues[0].message}`);
+    if (!p.success) return toast.error(t(`Check the "${String(p.error.issues[0].path[0])}" field`, `Revisa el campo "${String(p.error.issues[0].path[0])}"`));
     const { error } = edit?.id ? await supabase.from("packages").update(p.data).eq("id", edit.id) : await supabase.from("packages").insert(p.data);
     if (error) return toast.error(errMsg(error));
     toast.success(t("Package saved", "Paquete guardado")); setEdit(null); refresh();
