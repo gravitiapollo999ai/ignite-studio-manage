@@ -84,7 +84,7 @@ function Business() {
                   <Label htmlFor={id}>{lang === "es" ? f.es : f.en}</Label>
                   {f.long ? <Textarea id={id} name={f.key} defaultValue={val} rows={3} />
                     : f.key === "industry" ? (
-                      <><Input id={id} name={f.key} defaultValue={val} list="industries" /><datalist id="industries">{BUSINESS_TYPES.map((b, i) => <option key={b} value={lang === "es" ? (BUSINESS_TYPES_ES as Record<string, string>)[b] ?? b : b}>{i}</option>)}</datalist></>
+                      <><Input id={id} name={f.key} defaultValue={val} list="industries" /><datalist id="industries">{BUSINESS_TYPES.map((b) => <option key={b} value={lang === "es" ? BUSINESS_TYPES_ES[b] ?? b : b} />)}</datalist></>
                     ) : <Input id={id} name={f.key} type={f.type ?? "text"} defaultValue={val} placeholder={["instagram", "tiktok"].includes(f.key) ? "@" : undefined} />}
                 </div>
               );
