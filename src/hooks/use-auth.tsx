@@ -15,12 +15,15 @@ export function useAuth() {
     return () => data.subscription.unsubscribe();
   }, []);
   const roleQ = useQuery({
-    queryKey: ["is-admin", user?.id],
+    queryKey: ["my-roles", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data } = await supabase.from("user_roles").select("role").eq("user_id", user!.id).eq("role", "admin").maybeSingle();
-      return !!data;
+      const { data } = await supabase.from("user_roles").select("role").eq("user_id", user!.id);
+      return (data ?? []).map((r) => String(r.role));
     },
   });
-  return { user, loading, isAdmin: !!roleQ.data, roleLoading: roleQ.isLoading };
+  const roles = roleQ.data ?? [];
+  const isAdmin = roles.includes("admin");
+  const isManager = roles.includes("manager");
+  return { user, loading, isAdmin, isManager, isStaff: isAdmin || isManager, roleLoading: roleQ.isLoading };
 }
