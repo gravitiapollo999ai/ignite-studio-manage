@@ -18,3 +18,4 @@
 - Credit purchases go through the PaymentProvider abstraction in src/lib/payments.ts — a Stripe provider can be swapped in without UI changes.
 - All storage buckets are private; files are served via signed URLs (logo uses a long-lived signed URL) — workspace blocks public buckets.
 - Apply supabase/seed.sql after migrations for current pricing; historical migration files are immutable and contain the original seed.
+- UI text is bilingual via `useI18n().t(en, es)` from src/lib/i18n.tsx (no key dictionary); theme is a `.dark` class on <html> set by THEME_SCRIPT — keeps every new string translatable inline and avoids theme flash.
