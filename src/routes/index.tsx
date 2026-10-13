@@ -47,7 +47,8 @@ const USE_CASES = [
 
 function Landing() {
   const s = useSettings();
-  const { data: packages = [] } = useQuery(packagesQuery);
+  const initial = Route.useLoaderData();
+  const { data: packages = [] } = useQuery({ ...packagesQuery, initialData: initial });
   const { user } = useAuth();
   return (
     <div className="min-h-screen">
