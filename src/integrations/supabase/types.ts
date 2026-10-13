@@ -14,16 +14,593 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      client_notes: {
+        Row: {
+          author_id: string | null
+          client_id: string
+          created_at: string
+          id: string
+          note: string
+        }
+        Insert: {
+          author_id?: string | null
+          client_id: string
+          created_at?: string
+          id?: string
+          note: string
+        }
+        Update: {
+          author_id?: string | null
+          client_id?: string
+          created_at?: string
+          id?: string
+          note?: string
+        }
+        Relationships: []
+      }
+      credit_ledger: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          credit_request_id: string | null
+          delta: number
+          id: string
+          job_id: string | null
+          note: string | null
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          credit_request_id?: string | null
+          delta: number
+          id?: string
+          job_id?: string | null
+          note?: string | null
+          reason: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          credit_request_id?: string | null
+          delta?: number
+          id?: string
+          job_id?: string | null
+          note?: string | null
+          reason?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_ledger_credit_request_id_fkey"
+            columns: ["credit_request_id"]
+            isOneToOne: false
+            referencedRelation: "credit_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_ledger_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_ledger_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_feed"
+            referencedColumns: ["job_id"]
+          },
+        ]
+      }
+      credit_requests: {
+        Row: {
+          admin_note: string | null
+          client_message: string | null
+          created_at: string
+          credits: number
+          decided_at: string | null
+          decided_by: string | null
+          id: string
+          package_id: string | null
+          payment_provider: string | null
+          payment_reference: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          client_message?: string | null
+          created_at?: string
+          credits: number
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          package_id?: string | null
+          payment_provider?: string | null
+          payment_reference?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          client_message?: string | null
+          created_at?: string
+          credits?: number
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          package_id?: string | null
+          payment_provider?: string | null
+          payment_reference?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_requests_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deliverables: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_path: string
+          id: string
+          job_id: string
+          try_number: number
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_path: string
+          id?: string
+          job_id: string
+          try_number?: number
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          id?: string
+          job_id?: string
+          try_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deliverables_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliverables_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_feed"
+            referencedColumns: ["job_id"]
+          },
+        ]
+      }
+      job_events: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          job_id: string
+          message: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          job_id: string
+          message?: string | null
+          status: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          job_id?: string
+          message?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_events_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_events_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_feed"
+            referencedColumns: ["job_id"]
+          },
+        ]
+      }
+      job_internal: {
+        Row: {
+          internal_notes: string | null
+          internal_prompt: string | null
+          job_id: string
+          updated_at: string
+        }
+        Insert: {
+          internal_notes?: string | null
+          internal_prompt?: string | null
+          job_id: string
+          updated_at?: string
+        }
+        Update: {
+          internal_notes?: string | null
+          internal_prompt?: string | null
+          job_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_internal_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: true
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_internal_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: true
+            referencedRelation: "jobs_feed"
+            referencedColumns: ["job_id"]
+          },
+        ]
+      }
+      jobs: {
+        Row: {
+          business_type: string | null
+          clip_end: number | null
+          clip_start: number | null
+          code: string
+          created_at: string
+          estimated_credits: number
+          estimated_turnaround_hours: number
+          id: string
+          notes: string | null
+          reference_image_path: string | null
+          source_file_path: string | null
+          source_type: string
+          source_url: string | null
+          status: string
+          subject_name: string
+          subject_type: string
+          target_duration_seconds: number
+          try_number: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          business_type?: string | null
+          clip_end?: number | null
+          clip_start?: number | null
+          code?: string
+          created_at?: string
+          estimated_credits: number
+          estimated_turnaround_hours: number
+          id?: string
+          notes?: string | null
+          reference_image_path?: string | null
+          source_file_path?: string | null
+          source_type: string
+          source_url?: string | null
+          status?: string
+          subject_name: string
+          subject_type: string
+          target_duration_seconds: number
+          try_number?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          business_type?: string | null
+          clip_end?: number | null
+          clip_start?: number | null
+          code?: string
+          created_at?: string
+          estimated_credits?: number
+          estimated_turnaround_hours?: number
+          id?: string
+          notes?: string | null
+          reference_image_path?: string | null
+          source_file_path?: string | null
+          source_type?: string
+          source_url?: string | null
+          status?: string
+          subject_name?: string
+          subject_type?: string
+          target_duration_seconds?: number
+          try_number?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      packages: {
+        Row: {
+          active: boolean
+          created_at: string
+          credits: number
+          description: string | null
+          id: string
+          name: string
+          price_label: string
+          sort_order: number
+          videos: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          credits: number
+          description?: string | null
+          id?: string
+          name: string
+          price_label?: string
+          sort_order?: number
+          videos: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          credits?: number
+          description?: string | null
+          id?: string
+          name?: string
+          price_label?: string
+          sort_order?: number
+          videos?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          company: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          phone: string | null
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          phone?: string | null
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+        }
+        Relationships: []
+      }
+      settings: {
+        Row: {
+          accent_color: string
+          brand_name: string
+          credits_per_video: number
+          default_turnaround_hours: number
+          feed_last_success_at: string | null
+          hf_credits_per_30s: number
+          hf_plus_credits: number
+          hf_plus_price: number
+          hf_ultra_credits: number
+          hf_ultra_price: number
+          id: number
+          logo_url: string | null
+          max_tries_per_video: number
+          max_video_seconds: number
+          min_package_videos: number
+          support_email: string
+          updated_at: string
+        }
+        Insert: {
+          accent_color?: string
+          brand_name?: string
+          credits_per_video?: number
+          default_turnaround_hours?: number
+          feed_last_success_at?: string | null
+          hf_credits_per_30s?: number
+          hf_plus_credits?: number
+          hf_plus_price?: number
+          hf_ultra_credits?: number
+          hf_ultra_price?: number
+          id?: number
+          logo_url?: string | null
+          max_tries_per_video?: number
+          max_video_seconds?: number
+          min_package_videos?: number
+          support_email?: string
+          updated_at?: string
+        }
+        Update: {
+          accent_color?: string
+          brand_name?: string
+          credits_per_video?: number
+          default_turnaround_hours?: number
+          feed_last_success_at?: string | null
+          hf_credits_per_30s?: number
+          hf_plus_credits?: number
+          hf_plus_price?: number
+          hf_ultra_credits?: number
+          hf_ultra_price?: number
+          id?: number
+          logo_url?: string | null
+          max_tries_per_video?: number
+          max_video_seconds?: number
+          min_package_videos?: number
+          support_email?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      credit_balances: {
+        Row: {
+          balance: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      jobs_feed: {
+        Row: {
+          business_type: string | null
+          clip_end: number | null
+          clip_start: number | null
+          code: string | null
+          created_at: string | null
+          job_id: string | null
+          notes: string | null
+          reference_image_path: string | null
+          source_file_path: string | null
+          source_type: string | null
+          source_url: string | null
+          status: string | null
+          subject_name: string | null
+          subject_type: string | null
+          target_duration_seconds: number | null
+          try_number: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          business_type?: string | null
+          clip_end?: number | null
+          clip_start?: number | null
+          code?: string | null
+          created_at?: string | null
+          job_id?: string | null
+          notes?: string | null
+          reference_image_path?: string | null
+          source_file_path?: string | null
+          source_type?: string | null
+          source_url?: string | null
+          status?: string | null
+          subject_name?: string | null
+          subject_type?: string | null
+          target_duration_seconds?: number | null
+          try_number?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          business_type?: string | null
+          clip_end?: number | null
+          clip_start?: number | null
+          code?: string | null
+          created_at?: string | null
+          job_id?: string | null
+          notes?: string | null
+          reference_image_path?: string | null
+          source_file_path?: string | null
+          source_type?: string | null
+          source_url?: string | null
+          status?: string | null
+          subject_name?: string | null
+          subject_type?: string | null
+          target_duration_seconds?: number | null
+          try_number?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      admin_adjust_credits: {
+        Args: { _delta: number; _note: string; _user_id: string }
+        Returns: undefined
+      }
+      approve_credit_request: {
+        Args: { _id: string; _note?: string }
+        Returns: undefined
+      }
+      create_job: {
+        Args: {
+          _business_type: string
+          _clip_end: number
+          _clip_start: number
+          _notes: string
+          _reference_image_path: string
+          _source_file_path: string
+          _source_type: string
+          _source_url: string
+          _subject_name: string
+          _subject_type: string
+          _target_duration_seconds: number
+        }
+        Returns: string
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_admin: { Args: never; Returns: boolean }
+      refund_job: {
+        Args: { _credits: number; _job_id: string; _note: string }
+        Returns: undefined
+      }
+      reject_credit_request: {
+        Args: { _id: string; _note: string }
+        Returns: undefined
+      }
+      request_revision: {
+        Args: { _job_id: string; _reason: string }
+        Returns: undefined
+      }
+      set_job_status: {
+        Args: { _job_id: string; _message: string; _status: string }
+        Returns: undefined
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "client"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +727,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "client"],
+    },
   },
 } as const
