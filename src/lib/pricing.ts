@@ -99,6 +99,16 @@ export const STATUS_LABELS: Record<JobStatus, string> = {
   revision: "Revision",
   cancelled: "Cancelled",
 };
+export const STATUS_LABELS_ES: Record<JobStatus, string> = {
+  submitted: "Enviado",
+  in_review: "En revisión",
+  prompt_ready: "Prompt listo",
+  generating: "Generando",
+  qa: "Control de calidad",
+  delivered: "Entregado",
+  revision: "Revisión",
+  cancelled: "Cancelado",
+};
 export const ALL_STATUSES = Object.keys(STATUS_LABELS) as JobStatus[];
 
 export const BUSINESS_TYPES = [
