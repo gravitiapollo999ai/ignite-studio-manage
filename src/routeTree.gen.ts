@@ -10,33 +10,204 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
+import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
+import { Route as AuthenticatedCreditsRouteImport } from './routes/_authenticated/credits'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
+import { Route as AuthenticatedJobsIndexRouteImport } from './routes/_authenticated/jobs.index'
+import { Route as AuthenticatedJobsJobIdRouteImport } from './routes/_authenticated/jobs.$jobId'
+import { Route as AuthenticatedJobsNewRouteImport } from './routes/_authenticated/jobs.new'
+import { Route as AuthenticatedAdminJobsIndexRouteImport } from './routes/_authenticated/admin/jobs.index'
+import { Route as AuthenticatedAdminJobsJobIdRouteImport } from './routes/_authenticated/admin/jobs.$jobId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminRouteRoute = AuthenticatedAdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCreditsRoute = AuthenticatedCreditsRouteImport.update({
+  id: '/credits',
+  path: '/credits',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAdminRouteRoute,
+} as any)
+const AuthenticatedJobsIndexRoute = AuthenticatedJobsIndexRouteImport.update({
+  id: '/jobs/',
+  path: '/jobs/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedJobsJobIdRoute = AuthenticatedJobsJobIdRouteImport.update({
+  id: '/jobs/$jobId',
+  path: '/jobs/$jobId',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedJobsNewRoute = AuthenticatedJobsNewRouteImport.update({
+  id: '/jobs/new',
+  path: '/jobs/new',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminJobsIndexRoute =
+  AuthenticatedAdminJobsIndexRouteImport.update({
+    id: '/jobs/',
+    path: '/jobs/',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminJobsJobIdRoute =
+  AuthenticatedAdminJobsJobIdRouteImport.update({
+    id: '/jobs/$jobId',
+    path: '/jobs/$jobId',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
+  '/account': typeof AuthenticatedAccountRoute
+  '/credits': typeof AuthenticatedCreditsRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
+  '/jobs/new': typeof AuthenticatedJobsNewRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/jobs/': typeof AuthenticatedJobsIndexRoute
+  '/admin/jobs/$jobId': typeof AuthenticatedAdminJobsJobIdRoute
+  '/admin/jobs/': typeof AuthenticatedAdminJobsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/account': typeof AuthenticatedAccountRoute
+  '/credits': typeof AuthenticatedCreditsRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
+  '/jobs/new': typeof AuthenticatedJobsNewRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
+  '/jobs': typeof AuthenticatedJobsIndexRoute
+  '/admin/jobs/$jobId': typeof AuthenticatedAdminJobsJobIdRoute
+  '/admin/jobs': typeof AuthenticatedAdminJobsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
+  '/_authenticated/account': typeof AuthenticatedAccountRoute
+  '/_authenticated/credits': typeof AuthenticatedCreditsRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
+  '/_authenticated/jobs/new': typeof AuthenticatedJobsNewRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/jobs/': typeof AuthenticatedJobsIndexRoute
+  '/_authenticated/admin/jobs/$jobId': typeof AuthenticatedAdminJobsJobIdRoute
+  '/_authenticated/admin/jobs/': typeof AuthenticatedAdminJobsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/forgot-password'
+    | '/reset-password'
+    | '/admin'
+    | '/account'
+    | '/credits'
+    | '/dashboard'
+    | '/jobs/$jobId'
+    | '/jobs/new'
+    | '/admin/'
+    | '/jobs/'
+    | '/admin/jobs/$jobId'
+    | '/admin/jobs/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/forgot-password'
+    | '/reset-password'
+    | '/account'
+    | '/credits'
+    | '/dashboard'
+    | '/jobs/$jobId'
+    | '/jobs/new'
+    | '/admin'
+    | '/jobs'
+    | '/admin/jobs/$jobId'
+    | '/admin/jobs'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/forgot-password'
+    | '/reset-password'
+    | '/_authenticated/admin'
+    | '/_authenticated/account'
+    | '/_authenticated/credits'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/jobs/$jobId'
+    | '/_authenticated/jobs/new'
+    | '/_authenticated/admin/'
+    | '/_authenticated/jobs/'
+    | '/_authenticated/admin/jobs/$jobId'
+    | '/_authenticated/admin/jobs/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +219,154 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/account': {
+      id: '/_authenticated/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AuthenticatedAccountRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/credits': {
+      id: '/_authenticated/credits'
+      path: '/credits'
+      fullPath: '/credits'
+      preLoaderRoute: typeof AuthenticatedCreditsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/jobs/': {
+      id: '/_authenticated/jobs/'
+      path: '/jobs'
+      fullPath: '/jobs/'
+      preLoaderRoute: typeof AuthenticatedJobsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/jobs/$jobId': {
+      id: '/_authenticated/jobs/$jobId'
+      path: '/jobs/$jobId'
+      fullPath: '/jobs/$jobId'
+      preLoaderRoute: typeof AuthenticatedJobsJobIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/jobs/new': {
+      id: '/_authenticated/jobs/new'
+      path: '/jobs/new'
+      fullPath: '/jobs/new'
+      preLoaderRoute: typeof AuthenticatedJobsNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/jobs/': {
+      id: '/_authenticated/admin/jobs/'
+      path: '/jobs'
+      fullPath: '/admin/jobs/'
+      preLoaderRoute: typeof AuthenticatedAdminJobsIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/jobs/$jobId': {
+      id: '/_authenticated/admin/jobs/$jobId'
+      path: '/jobs/$jobId'
+      fullPath: '/admin/jobs/$jobId'
+      preLoaderRoute: typeof AuthenticatedAdminJobsJobIdRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
   }
 }
 
+interface AuthenticatedAdminRouteRouteChildren {
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+  AuthenticatedAdminJobsJobIdRoute: typeof AuthenticatedAdminJobsJobIdRoute
+  AuthenticatedAdminJobsIndexRoute: typeof AuthenticatedAdminJobsIndexRoute
+}
+
+const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
+  {
+    AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+    AuthenticatedAdminJobsJobIdRoute: AuthenticatedAdminJobsJobIdRoute,
+    AuthenticatedAdminJobsIndexRoute: AuthenticatedAdminJobsIndexRoute,
+  }
+
+const AuthenticatedAdminRouteRouteWithChildren =
+  AuthenticatedAdminRouteRoute._addFileChildren(
+    AuthenticatedAdminRouteRouteChildren,
+  )
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRouteRoute: typeof AuthenticatedAdminRouteRouteWithChildren
+  AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
+  AuthenticatedCreditsRoute: typeof AuthenticatedCreditsRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedJobsJobIdRoute: typeof AuthenticatedJobsJobIdRoute
+  AuthenticatedJobsNewRoute: typeof AuthenticatedJobsNewRoute
+  AuthenticatedJobsIndexRoute: typeof AuthenticatedJobsIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRouteRoute: AuthenticatedAdminRouteRouteWithChildren,
+  AuthenticatedAccountRoute: AuthenticatedAccountRoute,
+  AuthenticatedCreditsRoute: AuthenticatedCreditsRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedJobsJobIdRoute: AuthenticatedJobsJobIdRoute,
+  AuthenticatedJobsNewRoute: AuthenticatedJobsNewRoute,
+  AuthenticatedJobsIndexRoute: AuthenticatedJobsIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
