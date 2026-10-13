@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Empty, StatusBadge } from "@/components/site";
 import { balanceQuery, brandTitle } from "@/lib/data";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/clients/$clientId")({
   head: ({ matches }) => ({ meta: [{ title: brandTitle(matches, "Admin · Client") }] }),
@@ -18,6 +20,8 @@ export const Route = createFileRoute("/_authenticated/admin/clients/$clientId")(
 });
 
 function Client() {
+  const { t, lang } = useI18n();
+  const dateLocale = lang === "es" ? es : undefined;
   const { clientId } = Route.useParams();
   const { user } = Route.useRouteContext();
   const qc = useQueryClient();
@@ -34,42 +38,42 @@ function Client() {
     if (!note.trim()) return;
     const { error } = await supabase.from("client_notes").insert({ client_id: clientId, author_id: user.id, note: note.trim() });
     if (error) return toast.error(error.message);
-    setNote(""); toast.success("Note added");
+    setNote(""); toast.success(t("Note added", "Nota agregada"));
     qc.invalidateQueries({ queryKey: ["client-notes", clientId] });
   }
   async function adjust() {
     const n = Number(delta);
-    if (!Number.isInteger(n) || n === 0) return toast.error("Enter a whole number like 5 or -2");
-    if (!reason.trim()) return toast.error("Reason required");
+    if (!Number.isInteger(n) || n === 0) return toast.error(t("Enter a whole number like 5 or -2", "Ingresa un número entero como 5 o -2"));
+    if (!reason.trim()) return toast.error(t("Reason required", "Se requiere un motivo"));
     const { error } = await supabase.rpc("admin_adjust_credits", { _user_id: clientId, _delta: n, _note: reason.trim() });
     if (error) return toast.error(error.message);
-    setDelta(""); setReason(""); toast.success("Balance adjusted");
+    setDelta(""); setReason(""); toast.success(t("Balance adjusted", "Saldo ajustado"));
     qc.invalidateQueries({ queryKey: ["balance", clientId] });
     qc.invalidateQueries({ queryKey: ["admin-ledger", clientId] });
   }
 
   if (prof.isLoading) return <Skeleton className="h-64" />;
-  if (!prof.data) return <Empty title="Client not found" />;
+  if (!prof.data) return <Empty title={t("Client not found", "Cliente no encontrado")} />;
   const p = prof.data;
   return (
     <div className="space-y-6">
       <div><h1 className="text-2xl font-semibold">{p.full_name || p.email}</h1><p className="text-sm text-muted-foreground">{p.company} · {p.email} {p.phone && `· ${p.phone}`}</p></div>
       <div className="grid gap-6 lg:grid-cols-3">
-        <Card><CardHeader><CardTitle>Balance: {bal.data ?? "…"}</CardTitle></CardHeader><CardContent className="space-y-2">
-          <Input placeholder="+5 or -2" value={delta} onChange={(e) => setDelta(e.target.value)} />
-          <Input placeholder="Reason" value={reason} onChange={(e) => setReason(e.target.value)} />
-          <Button className="w-full" onClick={adjust}>Adjust credits</Button>
+        <Card><CardHeader><CardTitle>{t("Balance", "Saldo")}: {bal.data ?? "…"}</CardTitle></CardHeader><CardContent className="space-y-2">
+          <Input placeholder={t("+5 or -2", "+5 o -2")} value={delta} onChange={(e) => setDelta(e.target.value)} />
+          <Input placeholder={t("Reason", "Motivo")} value={reason} onChange={(e) => setReason(e.target.value)} />
+          <Button className="w-full" onClick={adjust}>{t("Adjust credits", "Ajustar créditos")}</Button>
           <div className="max-h-56 space-y-1 overflow-y-auto pt-2 text-sm">{ledger.data?.map((l) => (
-            <div key={l.id} className="flex justify-between"><span className="text-muted-foreground">{format(new Date(l.created_at), "MMM d")} · {l.reason}</span><span>{l.delta > 0 ? `+${l.delta}` : l.delta}</span></div>
+            <div key={l.id} className="flex justify-between"><span className="text-muted-foreground">{format(new Date(l.created_at), "MMM d", { locale: dateLocale })} · {l.reason}</span><span>{l.delta > 0 ? `+${l.delta}` : l.delta}</span></div>
           ))}</div>
         </CardContent></Card>
-        <Card className="lg:col-span-2"><CardHeader><CardTitle>Internal notes</CardTitle></CardHeader><CardContent className="space-y-3">
-          <div className="flex gap-2"><Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Only admins can see this" rows={2} /><Button onClick={addNote}>Add</Button></div>
-          {notes.data?.map((n) => <div key={n.id} className="rounded-lg bg-secondary p-3 text-sm"><p className="text-xs text-muted-foreground">{format(new Date(n.created_at), "MMM d, HH:mm")}</p><p className="whitespace-pre-wrap">{n.note}</p></div>)}
+        <Card className="lg:col-span-2"><CardHeader><CardTitle>{t("Internal notes", "Notas internas")}</CardTitle></CardHeader><CardContent className="space-y-3">
+          <div className="flex gap-2"><Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("Only admins can see this", "Solo los administradores pueden ver esto")} rows={2} /><Button onClick={addNote}>{t("Add", "Agregar")}</Button></div>
+          {notes.data?.map((n) => <div key={n.id} className="rounded-lg bg-secondary p-3 text-sm"><p className="text-xs text-muted-foreground">{format(new Date(n.created_at), "MMM d, HH:mm", { locale: dateLocale })}</p><p className="whitespace-pre-wrap">{n.note}</p></div>)}
         </CardContent></Card>
       </div>
-      <Card><CardHeader><CardTitle>Jobs</CardTitle></CardHeader><CardContent>
-        {jobs.data?.length === 0 ? <Empty title="No jobs yet" /> : <div className="divide-y divide-border">{jobs.data?.map((j) => (
+      <Card><CardHeader><CardTitle>{t("Jobs", "Trabajos")}</CardTitle></CardHeader><CardContent>
+        {jobs.data?.length === 0 ? <Empty title={t("No jobs yet", "Aún no hay trabajos")} /> : <div className="divide-y divide-border">{jobs.data?.map((j) => (
           <Link key={j.id} to="/admin/jobs/$jobId" params={{ jobId: j.id }} className="flex items-center justify-between py-2 hover:bg-accent/40"><span>{j.code} · {j.subject_name}</span><StatusBadge status={j.status} /></Link>
         ))}</div>}
       </CardContent></Card>

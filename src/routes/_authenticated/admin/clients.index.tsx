@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Empty } from "@/components/site";
 import { brandTitle } from "@/lib/data";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/clients/")({
   head: ({ matches }) => ({ meta: [{ title: brandTitle(matches, "Admin · Clients") }] }),
@@ -14,6 +15,7 @@ export const Route = createFileRoute("/_authenticated/admin/clients/")({
 });
 
 function Clients() {
+  const { t } = useI18n();
   const [q, setQ] = useState("");
   const data = useQuery({
     queryKey: ["admin-clients"],
@@ -32,11 +34,11 @@ function Clients() {
   const rows = (data.data ?? []).filter((c) => !q || `${c.full_name} ${c.email} ${c.company}`.toLowerCase().includes(q.toLowerCase()));
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">Clients</h1>
-      <Input placeholder="Search name, email or company" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-sm" />
-      {data.isLoading ? <Skeleton className="h-40" /> : rows.length === 0 ? <Empty title="No clients" /> : (
+      <h1 className="text-2xl font-semibold">{t("Clients", "Clientes")}</h1>
+      <Input placeholder={t("Search name, email or company", "Buscar nombre, correo o empresa")} value={q} onChange={(e) => setQ(e.target.value)} className="max-w-sm" />
+      {data.isLoading ? <Skeleton className="h-40" /> : rows.length === 0 ? <Empty title={t("No clients", "No hay clientes")} /> : (
         <div className="overflow-x-auto rounded-xl border border-border bg-card"><Table>
-          <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Company</TableHead><TableHead>Email</TableHead><TableHead className="text-right">Balance</TableHead><TableHead className="text-right">Jobs</TableHead></TableRow></TableHeader>
+          <TableHeader><TableRow><TableHead>{t("Name", "Nombre")}</TableHead><TableHead>{t("Company", "Empresa")}</TableHead><TableHead>{t("Email", "Correo")}</TableHead><TableHead className="text-right">{t("Balance", "Saldo")}</TableHead><TableHead className="text-right">{t("Jobs", "Trabajos")}</TableHead></TableRow></TableHeader>
           <TableBody>{rows.map((c) => (
             <TableRow key={c.id}><TableCell><Link to="/admin/clients/$clientId" params={{ clientId: c.id }} className="font-medium text-primary">{c.full_name || "—"}</Link></TableCell><TableCell>{c.company}</TableCell><TableCell>{c.email}</TableCell><TableCell className="text-right">{c.balance}</TableCell><TableCell className="text-right">{c.jobs}</TableCell></TableRow>
           ))}</TableBody>
