@@ -1,5 +1,6 @@
 import { createFileRoute, Link, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async ({ context }) => {
@@ -9,17 +10,17 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminLayout,
 });
 
-const LINKS = [
-  { to: "/admin", label: "Overview", exact: true },
-  { to: "/admin/jobs", label: "Jobs" },
-  { to: "/admin/credit-requests", label: "Credit requests" },
-  { to: "/admin/clients", label: "Clients" },
-  { to: "/admin/packages", label: "Packages" },
-  { to: "/admin/settings", label: "Settings" },
-  { to: "/admin/api", label: "API" },
-] as const;
-
 function AdminLayout() {
+  const { t } = useI18n();
+  const LINKS = [
+    { to: "/admin", label: t("Overview", "Resumen"), exact: true },
+    { to: "/admin/jobs", label: t("Jobs", "Trabajos") },
+    { to: "/admin/credit-requests", label: t("Credit requests", "Solicitudes de créditos") },
+    { to: "/admin/clients", label: t("Clients", "Clientes") },
+    { to: "/admin/packages", label: t("Packages", "Paquetes") },
+    { to: "/admin/settings", label: t("Settings", "Configuración") },
+    { to: "/admin/api", label: t("API", "API") },
+  ] as const;
   return (
     <div className="space-y-6">
       <nav className="-mx-4 flex gap-1 overflow-x-auto border-b border-border px-4 pb-2">

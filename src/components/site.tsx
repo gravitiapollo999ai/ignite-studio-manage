@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Clapperboard } from "lucide-react";
 import { DEFAULT_SETTINGS, settingsQuery } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
-import { STATUS_LABELS, type JobStatus } from "@/lib/pricing";
+import { STATUS_LABELS, STATUS_LABELS_ES, type JobStatus } from "@/lib/pricing";
+import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export function useSettings() {
@@ -30,10 +31,11 @@ export function BrandMark({ className }: { className?: string }) {
 
 export function SiteFooter() {
   const s = useSettings();
+  const { t } = useI18n();
   return (
     <footer className="border-t border-border py-8 text-sm text-muted-foreground">
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 sm:flex-row">
-        <span>© {new Date().getFullYear()} {s.brand_name}. All rights reserved.</span>
+        <span>© {new Date().getFullYear()} {s.brand_name}. {t("All rights reserved.", "Todos los derechos reservados.")}</span>
         <a href={`mailto:${s.support_email}`} className="hover:text-foreground">{s.support_email}</a>
       </div>
     </footer>
@@ -52,13 +54,20 @@ const STATUS_TONE: Record<JobStatus, string> = {
 };
 
 export function StatusBadge({ status }: { status: string }) {
+  const { lang } = useI18n();
   const s = status as JobStatus;
-  return <Badge variant="outline" className={cn("border-transparent", STATUS_TONE[s])}>{STATUS_LABELS[s] ?? status}</Badge>;
+  const labels = lang === "es" ? STATUS_LABELS_ES : STATUS_LABELS;
+  return <Badge variant="outline" className={cn("border-transparent", STATUS_TONE[s])}>{labels[s] ?? status}</Badge>;
 }
 
+const REQUEST_LABELS_EN: Record<string, string> = { pending: "Pending", approved: "Approved", rejected: "Rejected" };
+const REQUEST_LABELS_ES: Record<string, string> = { pending: "Pendiente", approved: "Aprobada", rejected: "Rechazada" };
+
 export function RequestBadge({ status }: { status: string }) {
+  const { lang } = useI18n();
   const tone = status === "approved" ? "bg-success/20" : status === "rejected" ? "bg-destructive/15 text-destructive" : "bg-warning/20";
-  return <Badge variant="outline" className={cn("border-transparent capitalize text-foreground", tone)}>{status}</Badge>;
+  const labels = lang === "es" ? REQUEST_LABELS_ES : REQUEST_LABELS_EN;
+  return <Badge variant="outline" className={cn("border-transparent capitalize text-foreground", tone)}>{labels[status] ?? status}</Badge>;
 }
 
 export function Empty({ title, children }: { title: string; children?: React.ReactNode }) {

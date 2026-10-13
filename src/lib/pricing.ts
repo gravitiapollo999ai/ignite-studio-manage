@@ -99,6 +99,16 @@ export const STATUS_LABELS: Record<JobStatus, string> = {
   revision: "Revision",
   cancelled: "Cancelled",
 };
+export const STATUS_LABELS_ES: Record<JobStatus, string> = {
+  submitted: "Enviado",
+  in_review: "En revisión",
+  prompt_ready: "Prompt listo",
+  generating: "Generando",
+  qa: "Control de calidad",
+  delivered: "Entregado",
+  revision: "Revisión",
+  cancelled: "Cancelado",
+};
 export const ALL_STATUSES = Object.keys(STATUS_LABELS) as JobStatus[];
 
 export const BUSINESS_TYPES = [
@@ -113,3 +123,16 @@ export const BUSINESS_TYPES = [
   "Education",
   "Other",
 ];
+
+export const BUSINESS_TYPES_ES: Record<string, string> = {
+  Restaurant: "Restaurante",
+  Construction: "Construcción",
+  "Real estate": "Bienes raíces",
+  "Beauty / salon": "Belleza / salón",
+  Fitness: "Fitness",
+  "Retail / e-commerce": "Tienda / e-commerce",
+  "Clinic / health": "Clínica / salud",
+  Automotive: "Automotriz",
+  Education: "Educación",
+  Other: "Otro",
+};

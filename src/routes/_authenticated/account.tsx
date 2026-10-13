@@ -10,16 +10,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { brandTitle } from "@/lib/data";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/account")({
   head: ({ matches }) => ({ meta: [{ title: brandTitle(matches, "Account") }] }),
   component: Account,
 });
 
-const schema = z.object({ full_name: z.string().trim().min(1, "Name required").max(100), company: z.string().trim().max(100), phone: z.string().trim().max(40) });
-
 function Account() {
   const { user } = Route.useRouteContext();
+  const { t } = useI18n();
+  const schema = z.object({
+    full_name: z.string().trim().min(1, t("Name required", "El nombre es obligatorio")).max(100),
+    company: z.string().trim().max(100),
+    phone: z.string().trim().max(40),
+  });
   const qc = useQueryClient();
   const prof = useQuery({ queryKey: ["profile", user.id], queryFn: async () => (await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle()).data });
   const [busy, setBusy] = useState(false);
@@ -32,40 +37,40 @@ function Account() {
     const { error } = await supabase.from("profiles").update(p.data).eq("id", user.id);
     setBusy(false);
     if (error) return toast.error(error.message);
-    toast.success("Profile saved");
+    toast.success(t("Profile saved", "Perfil guardado"));
     qc.invalidateQueries({ queryKey: ["profile", user.id] });
   }
   async function changePw(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
     const pw = String(f.get("password") ?? "");
-    if (pw.length < 6) return toast.error("At least 6 characters");
-    if (pw !== f.get("confirm")) return toast.error("Passwords don't match");
+    if (pw.length < 6) return toast.error(t("At least 6 characters", "Al menos 6 caracteres"));
+    if (pw !== f.get("confirm")) return toast.error(t("Passwords don't match", "Las contraseñas no coinciden"));
     const { error } = await supabase.auth.updateUser({ password: pw });
     if (error) return toast.error(error.message);
-    toast.success("Password changed");
+    toast.success(t("Password changed", "Contraseña actualizada"));
     e.currentTarget.reset();
   }
 
   return (
     <div className="mx-auto max-w-xl space-y-6">
-      <h1 className="text-2xl font-semibold">Account</h1>
-      <Card><CardHeader><CardTitle>Profile</CardTitle></CardHeader><CardContent>
+      <h1 className="text-2xl font-semibold">{t("Account", "Cuenta")}</h1>
+      <Card><CardHeader><CardTitle>{t("Profile", "Perfil")}</CardTitle></CardHeader><CardContent>
         {prof.isLoading ? <Skeleton className="h-48" /> : (
           <form onSubmit={save} className="space-y-4" key={prof.data?.id}>
-            <div className="space-y-2"><Label>Email</Label><Input value={user.email ?? ""} disabled /></div>
-            <div className="space-y-2"><Label htmlFor="fn">Full name</Label><Input id="fn" name="full_name" defaultValue={prof.data?.full_name ?? ""} /></div>
-            <div className="space-y-2"><Label htmlFor="co">Company</Label><Input id="co" name="company" defaultValue={prof.data?.company ?? ""} /></div>
-            <div className="space-y-2"><Label htmlFor="ph">Phone</Label><Input id="ph" name="phone" defaultValue={prof.data?.phone ?? ""} /></div>
-            <Button disabled={busy}>{busy ? "Saving…" : "Save"}</Button>
+            <div className="space-y-2"><Label>{t("Email", "Correo electrónico")}</Label><Input value={user.email ?? ""} disabled /></div>
+            <div className="space-y-2"><Label htmlFor="fn">{t("Full name", "Nombre completo")}</Label><Input id="fn" name="full_name" defaultValue={prof.data?.full_name ?? ""} /></div>
+            <div className="space-y-2"><Label htmlFor="co">{t("Company", "Empresa")}</Label><Input id="co" name="company" defaultValue={prof.data?.company ?? ""} /></div>
+            <div className="space-y-2"><Label htmlFor="ph">{t("Phone", "Teléfono")}</Label><Input id="ph" name="phone" defaultValue={prof.data?.phone ?? ""} /></div>
+            <Button disabled={busy}>{busy ? t("Saving…", "Guardando…") : t("Save", "Guardar")}</Button>
           </form>
         )}
       </CardContent></Card>
-      <Card><CardHeader><CardTitle>Change password</CardTitle></CardHeader><CardContent>
+      <Card><CardHeader><CardTitle>{t("Change password", "Cambiar contraseña")}</CardTitle></CardHeader><CardContent>
         <form onSubmit={changePw} className="space-y-4">
-          <div className="space-y-2"><Label htmlFor="np">New password</Label><Input id="np" name="password" type="password" /></div>
-          <div className="space-y-2"><Label htmlFor="cp">Confirm</Label><Input id="cp" name="confirm" type="password" /></div>
-          <Button>Update password</Button>
+          <div className="space-y-2"><Label htmlFor="np">{t("New password", "Nueva contraseña")}</Label><Input id="np" name="password" type="password" /></div>
+          <div className="space-y-2"><Label htmlFor="cp">{t("Confirm", "Confirmar")}</Label><Input id="cp" name="confirm" type="password" /></div>
+          <Button>{t("Update password", "Actualizar contraseña")}</Button>
         </form>
       </CardContent></Card>
     </div>

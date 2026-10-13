@@ -7,13 +7,14 @@ export type CreditPurchaseResult = { kind: "pending_review" } | { kind: "redirec
  *  A future "stripe" provider can return { kind: "redirect", url } to Checkout without UI changes. */
 export interface PaymentProvider {
   id: string;
-  ctaLabel: string;
+  /** Call-site translatable CTA label: ctaLabel((en, es) => lang === "es" ? es : en) */
+  ctaLabel: (t: (en: string, es: string) => string) => string;
   start(input: CreditPurchaseInput): Promise<CreditPurchaseResult>;
 }
 
 export const manualProvider: PaymentProvider = {
   id: "manual",
-  ctaLabel: "Send request",
+  ctaLabel: (t) => t("Send request", "Enviar solicitud"),
   async start({ userId, packageId, credits, message }) {
     const { error } = await supabase.from("credit_requests").insert({
       user_id: userId,
