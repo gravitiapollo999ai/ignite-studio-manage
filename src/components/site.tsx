@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 export function useSettings() {
   const root = useLoaderData({ from: rootRouteId }) as { settings?: typeof DEFAULT_SETTINGS } | undefined;
-  const { data } = useQuery({ ...settingsQuery, initialData: root?.settings });
+  const { data } = useQuery({ ...settingsQuery, initialData: root?.settings ?? DEFAULT_SETTINGS });
   return data ?? DEFAULT_SETTINGS;
 }
 
