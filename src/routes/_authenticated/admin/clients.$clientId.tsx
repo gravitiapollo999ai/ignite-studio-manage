@@ -68,7 +68,7 @@ function Client() {
           <Input placeholder={t("Note (required)", "Nota (obligatoria)")} value={reason} onChange={(e) => setReason(e.target.value)} />
           <Button className="w-full" onClick={adjust}>{t("Grant / remove free credits", "Otorgar / quitar créditos gratis")}</Button>
           <div className="max-h-56 space-y-1 overflow-y-auto pt-2 text-sm">{ledger.data?.map((l) => (
-            <div key={l.id} className="flex justify-between"><span className="text-muted-foreground">{format(new Date(l.created_at), "MMM d", { locale: dateLocale as any })} · {l.reason}</span><span>{l.delta > 0 ? `+${l.delta}` : l.delta}</span></div>
+            <div key={l.id} className="flex justify-between"><span className="text-muted-foreground">{format(new Date(l.created_at), "MMM d", { locale: dateLocale as any })} · {l.reason}{l.note ? ` — ${l.note}` : ""}</span><span>{l.delta > 0 ? `+${l.delta}` : l.delta}</span></div>
           ))}</div>
         </CardContent></Card>
         <Card className="lg:col-span-2"><CardHeader><CardTitle>{t("Internal notes", "Notas internas")}</CardTitle></CardHeader><CardContent className="space-y-3">
