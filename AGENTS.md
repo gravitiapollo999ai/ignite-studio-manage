@@ -19,3 +19,6 @@
 - All storage buckets are private; files are served via signed URLs (logo uses a long-lived signed URL) — workspace blocks public buckets.
 - Apply supabase/seed.sql after migrations for current pricing; historical migration files are immutable and contain the original seed.
 - UI text is bilingual via `useI18n().t(en, es)` from src/lib/i18n.tsx (no key dictionary); theme is a `.dark` class on <html> set by THEME_SCRIPT — keeps every new string translatable inline and avoids theme flash.
+- Staff = admin or manager (user_roles, is_staff()); roles change only via set_user_role (admin-only, keeps ≥1 admin) — managers get read + credit grants only.
+- credit_transactions is a read-only view over credit_ledger, never a second ledger — avoids double charging.
+- Social OAuth tokens live in social_tokens (service_role only); clients only see social_connections status.
