@@ -14,6 +14,75 @@ export type Database = {
   }
   public: {
     Tables: {
+      business_profiles: {
+        Row: {
+          brand_colors: string | null
+          business_email: string | null
+          business_name: string | null
+          city: string | null
+          completed: boolean
+          country: string | null
+          created_at: string
+          description: string | null
+          facebook: string | null
+          industry: string | null
+          instagram: string | null
+          logo_path: string | null
+          phone: string | null
+          products_services: string | null
+          target_audience: string | null
+          tiktok: string | null
+          updated_at: string
+          user_id: string
+          website: string | null
+          youtube: string | null
+        }
+        Insert: {
+          brand_colors?: string | null
+          business_email?: string | null
+          business_name?: string | null
+          city?: string | null
+          completed?: boolean
+          country?: string | null
+          created_at?: string
+          description?: string | null
+          facebook?: string | null
+          industry?: string | null
+          instagram?: string | null
+          logo_path?: string | null
+          phone?: string | null
+          products_services?: string | null
+          target_audience?: string | null
+          tiktok?: string | null
+          updated_at?: string
+          user_id: string
+          website?: string | null
+          youtube?: string | null
+        }
+        Update: {
+          brand_colors?: string | null
+          business_email?: string | null
+          business_name?: string | null
+          city?: string | null
+          completed?: boolean
+          country?: string | null
+          created_at?: string
+          description?: string | null
+          facebook?: string | null
+          industry?: string | null
+          instagram?: string | null
+          logo_path?: string | null
+          phone?: string | null
+          products_services?: string | null
+          target_audience?: string | null
+          tiktok?: string | null
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+          youtube?: string | null
+        }
+        Relationships: []
+      }
       client_notes: {
         Row: {
           author_id: string | null
@@ -461,6 +530,115 @@ export type Database = {
         }
         Relationships: []
       }
+      social_connections: {
+        Row: {
+          account_id: string | null
+          account_name: string | null
+          connected_at: string | null
+          created_at: string
+          id: string
+          provider: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          account_id?: string | null
+          account_name?: string | null
+          connected_at?: string | null
+          created_at?: string
+          id?: string
+          provider: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string | null
+          account_name?: string | null
+          connected_at?: string | null
+          created_at?: string
+          id?: string
+          provider?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      social_posts: {
+        Row: {
+          created_at: string
+          deliverable_id: string
+          error: string | null
+          external_post_id: string | null
+          id: string
+          provider: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deliverable_id: string
+          error?: string | null
+          external_post_id?: string | null
+          id?: string
+          provider: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deliverable_id?: string
+          error?: string | null
+          external_post_id?: string | null
+          id?: string
+          provider?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_posts_deliverable_id_fkey"
+            columns: ["deliverable_id"]
+            isOneToOne: false
+            referencedRelation: "deliverables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_tokens: {
+        Row: {
+          access_token: string | null
+          connection_id: string
+          expires_at: string | null
+          refresh_token: string | null
+          scopes: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_token?: string | null
+          connection_id: string
+          expires_at?: string | null
+          refresh_token?: string | null
+          scopes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_token?: string | null
+          connection_id?: string
+          expires_at?: string | null
+          refresh_token?: string | null
+          scopes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_tokens_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: true
+            referencedRelation: "social_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -487,6 +665,64 @@ export type Database = {
           user_id: string | null
         }
         Relationships: []
+      }
+      credit_transactions: {
+        Row: {
+          amount: number | null
+          created_at: string | null
+          created_by: string | null
+          credit_request_id: string | null
+          id: string | null
+          job_id: string | null
+          kind: string | null
+          note: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          credit_request_id?: string | null
+          id?: string | null
+          job_id?: string | null
+          kind?: string | null
+          note?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          credit_request_id?: string | null
+          id?: string | null
+          job_id?: string | null
+          kind?: string | null
+          note?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_ledger_credit_request_id_fkey"
+            columns: ["credit_request_id"]
+            isOneToOne: false
+            referencedRelation: "credit_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_ledger_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_ledger_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_feed"
+            referencedColumns: ["job_id"]
+          },
+        ]
       }
       jobs_feed: {
         Row: {
@@ -582,6 +818,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      is_staff: { Args: never; Returns: boolean }
       refund_job: {
         Args: { _credits: number; _job_id: string; _note: string }
         Returns: undefined
@@ -598,9 +835,13 @@ export type Database = {
         Args: { _job_id: string; _message: string; _status: string }
         Returns: undefined
       }
+      set_user_role: {
+        Args: { _grant: boolean; _role: string; _user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
-      app_role: "admin" | "client"
+      app_role: "admin" | "client" | "manager"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -728,7 +969,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "client"],
+      app_role: ["admin", "client", "manager"],
     },
   },
 } as const
