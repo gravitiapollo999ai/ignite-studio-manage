@@ -22,3 +22,4 @@
 - Staff = admin or manager (user_roles, is_staff()); roles change only via set_user_role (admin-only, keeps ≥1 admin) — managers get read + credit grants only.
 - credit_transactions is a read-only view over credit_ledger, never a second ledger — avoids double charging.
 - Social OAuth tokens live in social_tokens (service_role only); clients only see social_connections status.
+- Spoofer sync: new jobs enqueue in spoofer_sync (trigger), pushed server-side by src/lib/spoofer-sync.server.ts with Bearer SPOOFER_SYNC_SECRET; status/video come back via /api/public/spoofer/status; contract in docs/spoofer-receiver-contract.md — sync tables are admin-read only, inbound never pushes outbound (no echo loops).
