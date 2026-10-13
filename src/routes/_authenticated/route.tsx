@@ -1,5 +1,6 @@
 import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { CreditCard, Film, LayoutDashboard, LogOut, Shield, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { BrandMark, SiteFooter } from "@/components/site";
@@ -24,12 +25,27 @@ const NAV = [
   { to: "/credits", label: { en: "Credits", es: "Créditos" }, icon: CreditCard },
   { to: "/account", label: { en: "Account", es: "Cuenta" }, icon: User },
 ] as const;
+const EXTRA = [
+  { to: "/business", label: { en: "Business", es: "Negocio" } },
+  { to: "/connections", label: { en: "Connections", es: "Conexiones" } },
+] as const;
 
 function Layout() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isStaff } = useAuth();
+  const { user } = Route.useRouteContext();
   const nav = useNavigate();
   const qc = useQueryClient();
   const { t, lang } = useI18n();
+
+  // Live balance: refresh whenever this user's credit ledger changes
+  useEffect(() => {
+    const ch = supabase.channel(`ledger-${user.id}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "credit_ledger", filter: `user_id=eq.${user.id}` }, () => {
+        qc.invalidateQueries({ queryKey: ["balance"] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [user.id, qc]);
 
   async function handleSignOut() {
     await qc.cancelQueries();
@@ -49,8 +65,13 @@ function Layout() {
                 {lang === "es" ? n.label.es : n.label.en}
               </Link>
             ))}
-            {isAdmin && (
-              <Link to="/admin" className="rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground" activeProps={{ className: "bg-accent text-foreground" }}>{t("Admin", "Administración")}</Link>
+            {EXTRA.map((n) => (
+              <Link key={n.to} to={n.to} className="rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground" activeProps={{ className: "bg-accent text-foreground" }}>
+                {lang === "es" ? n.label.es : n.label.en}
+              </Link>
+            ))}
+            {isStaff && (
+              <Link to={isAdmin ? "/admin" : "/admin/clients"} className="rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground" activeProps={{ className: "bg-accent text-foreground" }}>{t("Admin", "Administración")}</Link>
             )}
           </nav>
           <div className="flex items-center gap-2">
@@ -71,8 +92,8 @@ function Layout() {
             <n.icon className="h-5 w-5" />{lang === "es" ? n.label.es : n.label.en}
           </Link>
         ))}
-        {isAdmin ? (
-          <Link to="/admin" className="flex flex-col items-center gap-1 py-2 text-xs text-muted-foreground" activeProps={{ className: "text-primary" }}><Shield className="h-5 w-5" />{t("Admin", "Admin")}</Link>
+        {isStaff ? (
+          <Link to={isAdmin ? "/admin" : "/admin/clients"} className="flex flex-col items-center gap-1 py-2 text-xs text-muted-foreground" activeProps={{ className: "text-primary" }}><Shield className="h-5 w-5" />{t("Admin", "Admin")}</Link>
         ) : <span />}
       </nav>
     </div>

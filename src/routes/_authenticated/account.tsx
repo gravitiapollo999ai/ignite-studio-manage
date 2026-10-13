@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { z } from "zod";
@@ -55,6 +55,10 @@ function Account() {
   return (
     <div className="mx-auto max-w-xl space-y-6">
       <h1 className="text-2xl font-semibold">{t("Account", "Cuenta")}</h1>
+      <div className="flex flex-wrap gap-2">
+        <Button asChild variant="outline"><Link to="/business" search={{}}>{t("Business profile", "Perfil del negocio")}</Link></Button>
+        <Button asChild variant="outline"><Link to="/connections">{t("Connections", "Conexiones")}</Link></Button>
+      </div>
       <Card><CardHeader><CardTitle>{t("Profile", "Perfil")}</CardTitle></CardHeader><CardContent>
         {prof.isLoading ? <Skeleton className="h-48" /> : (
           <form onSubmit={save} className="space-y-4" key={prof.data?.id}>

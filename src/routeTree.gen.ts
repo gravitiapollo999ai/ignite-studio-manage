@@ -17,6 +17,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedBusinessRouteImport } from './routes/_authenticated/business'
+import { Route as AuthenticatedConnectionsRouteImport } from './routes/_authenticated/connections'
 import { Route as AuthenticatedCreditsRouteImport } from './routes/_authenticated/credits'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
@@ -74,6 +75,12 @@ const AuthenticatedBusinessRoute = AuthenticatedBusinessRouteImport.update({
   path: '/business',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedConnectionsRoute =
+  AuthenticatedConnectionsRouteImport.update({
+    id: '/connections',
+    path: '/connections',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCreditsRoute = AuthenticatedCreditsRouteImport.update({
   id: '/credits',
   path: '/credits',
@@ -175,6 +182,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/account': typeof AuthenticatedAccountRoute
   '/business': typeof AuthenticatedBusinessRoute
+  '/connections': typeof AuthenticatedConnectionsRoute
   '/credits': typeof AuthenticatedCreditsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/admin/api': typeof AuthenticatedAdminApiRoute
@@ -200,6 +208,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/account': typeof AuthenticatedAccountRoute
   '/business': typeof AuthenticatedBusinessRoute
+  '/connections': typeof AuthenticatedConnectionsRoute
   '/credits': typeof AuthenticatedCreditsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/admin/api': typeof AuthenticatedAdminApiRoute
@@ -228,6 +237,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/business': typeof AuthenticatedBusinessRoute
+  '/_authenticated/connections': typeof AuthenticatedConnectionsRoute
   '/_authenticated/credits': typeof AuthenticatedCreditsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/admin/api': typeof AuthenticatedAdminApiRoute
@@ -256,6 +266,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/account'
     | '/business'
+    | '/connections'
     | '/credits'
     | '/dashboard'
     | '/admin/api'
@@ -281,6 +292,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/account'
     | '/business'
+    | '/connections'
     | '/credits'
     | '/dashboard'
     | '/admin/api'
@@ -308,6 +320,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/account'
     | '/_authenticated/business'
+    | '/_authenticated/connections'
     | '/_authenticated/credits'
     | '/_authenticated/dashboard'
     | '/_authenticated/admin/api'
@@ -392,6 +405,13 @@ declare module '@tanstack/react-router' {
       path: '/business'
       fullPath: '/business'
       preLoaderRoute: typeof AuthenticatedBusinessRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/connections': {
+      id: '/_authenticated/connections'
+      path: '/connections'
+      fullPath: '/connections'
+      preLoaderRoute: typeof AuthenticatedConnectionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/credits': {
@@ -554,6 +574,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRouteRoute: typeof AuthenticatedAdminRouteRouteWithChildren
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
   AuthenticatedBusinessRoute: typeof AuthenticatedBusinessRoute
+  AuthenticatedConnectionsRoute: typeof AuthenticatedConnectionsRoute
   AuthenticatedCreditsRoute: typeof AuthenticatedCreditsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedJobsJobIdRoute: typeof AuthenticatedJobsJobIdRoute
@@ -565,6 +586,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRouteRoute: AuthenticatedAdminRouteRouteWithChildren,
   AuthenticatedAccountRoute: AuthenticatedAccountRoute,
   AuthenticatedBusinessRoute: AuthenticatedBusinessRoute,
+  AuthenticatedConnectionsRoute: AuthenticatedConnectionsRoute,
   AuthenticatedCreditsRoute: AuthenticatedCreditsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedJobsJobIdRoute: AuthenticatedJobsJobIdRoute,
