@@ -15,6 +15,13 @@
       "when": 1791913307430,
       "tag": "0001_staff_roles_business_social",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791928828677,
+      "tag": "0002_spoofer_sync",
+      "breakpoints": true
     }
   ]
 }
