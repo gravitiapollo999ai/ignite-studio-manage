@@ -49,6 +49,7 @@ function NewJob() {
   const s = useSettings();
   const nav = useNavigate();
   const qc = useQueryClient();
+  const dispatchSync = useServerFn(dispatchJobSync);
   const bal = useQuery(balanceQuery(user.id));
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
