@@ -70,7 +70,7 @@ function AdminJob() {
     try {
       for (const f of Array.from(list)) {
         const path = `${j!.id}/try${uploadTry}/${crypto.randomUUID()}-${f.name.replace(/[^\w.-]+/g, "_")}`;
-        const up = await supabase.storage.from("deliverables").upload(path, f, { contentType: f.type || undefined });
+        const up = await supabase.storage.from("deliverables").upload(path, f, f.type ? { contentType: f.type } : {});
         if (up.error) throw up.error;
         const { error } = await supabase.from("deliverables").insert({ job_id: j!.id, file_path: path, file_name: f.name, try_number: Number(uploadTry) });
         if (error) throw error;

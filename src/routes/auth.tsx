@@ -11,7 +11,7 @@ import { BrandMark } from "@/components/site";
 import { brandTitle, errMsg } from "@/lib/data";
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (s: Record<string, unknown>) => ({ mode: s.mode === "signup" ? ("signup" as const) : undefined }),
+  validateSearch: (s: Record<string, unknown>): { mode?: "signup" } => (s["mode"] === "signup" ? { mode: "signup" } : {}),
   head: ({ matches }) => {
     const t = brandTitle(matches, "Log in or sign up");
     return { meta: [{ title: t }, { name: "description", content: "Access your video dashboard." }, { property: "og:title", content: t }, { property: "og:description", content: "Access your video dashboard." }] };
