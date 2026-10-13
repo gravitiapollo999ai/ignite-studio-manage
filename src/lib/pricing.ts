@@ -123,3 +123,16 @@ export const BUSINESS_TYPES = [
   "Education",
   "Other",
 ];
+
+export const BUSINESS_TYPES_ES: Record<string, string> = {
+  Restaurant: "Restaurante",
+  Construction: "Construcción",
+  "Real estate": "Bienes raíces",
+  "Beauty / salon": "Belleza / salón",
+  Fitness: "Fitness",
+  "Retail / e-commerce": "Tienda / e-commerce",
+  "Clinic / health": "Clínica / salud",
+  Automotive: "Automotriz",
+  Education: "Educación",
+  Other: "Otro",
+};

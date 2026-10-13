@@ -17,7 +17,7 @@ import { Progress } from "@/components/ui/progress";
 import { useSettings } from "@/components/site";
 import { balanceQuery, brandTitle, errMsg } from "@/lib/data";
 import { useI18n } from "@/lib/i18n";
-import { BUSINESS_TYPES, SOURCE_LABELS, defaultDuration, detectPlatform, formatMmSs, jobCost, parseMmSs, type SourceType } from "@/lib/pricing";
+import { BUSINESS_TYPES, BUSINESS_TYPES_ES, SOURCE_LABELS, defaultDuration, detectPlatform, formatMmSs, jobCost, parseMmSs, type SourceType } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/jobs/new")({
@@ -217,7 +217,7 @@ function NewJob() {
               <input id="img" type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => onImage(e.target.files?.[0] ?? null)} />
             </div>
             <div className="space-y-2"><Label>{t("Business type", "Tipo de negocio")}</Label>
-              <Select value={bizType} onValueChange={setBizType}><SelectTrigger><SelectValue placeholder={t("Choose…", "Elige…")} /></SelectTrigger><SelectContent>{BUSINESS_TYPES.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}</SelectContent></Select>
+              <Select value={bizType} onValueChange={setBizType}><SelectTrigger><SelectValue placeholder={t("Choose…", "Elige…")} /></SelectTrigger><SelectContent>{BUSINESS_TYPES.map((b) => <SelectItem key={b} value={b}>{t(b, BUSINESS_TYPES_ES[b] ?? b)}</SelectItem>)}</SelectContent></Select>
               {bizType === "Other" && <Input value={bizOther} onChange={(e) => setBizOther(e.target.value)} placeholder={t("Describe your business", "Describe tu negocio")} maxLength={100} />}
             </div>
             <div className="space-y-2"><Label htmlFor="notes">{t("Notes", "Notas")}</Label><Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={2000} placeholder={t("Text on screen, offers, tone, what to change from the original…", "Texto en pantalla, ofertas, tono, qué cambiar del original…")} /></div>
