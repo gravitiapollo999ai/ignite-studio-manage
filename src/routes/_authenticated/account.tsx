@@ -56,7 +56,7 @@ function Account() {
     <div className="mx-auto max-w-xl space-y-6">
       <h1 className="text-2xl font-semibold">{t("Account", "Cuenta")}</h1>
       <div className="flex flex-wrap gap-2">
-        <Button asChild variant="outline"><Link to="/business" search={{}}>{t("Business profile", "Perfil del negocio")}</Link></Button>
+        <Button asChild variant="outline"><Link to="/business" search={{ onboarding: undefined }}>{t("Business profile", "Perfil del negocio")}</Link></Button>
         <Button asChild variant="outline"><Link to="/connections">{t("Connections", "Conexiones")}</Link></Button>
       </div>
       <Card><CardHeader><CardTitle>{t("Profile", "Perfil")}</CardTitle></CardHeader><CardContent>
