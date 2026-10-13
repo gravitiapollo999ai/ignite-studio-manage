@@ -29,7 +29,7 @@ const schema = z.object({
 });
 
 function Packages() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const qc = useQueryClient();
   const pkgs = useQuery({ queryKey: ["admin-packages"], queryFn: async () => (await supabase.from("packages").select("*").order("sort_order")).data ?? [] });
   const [edit, setEdit] = useState<Partial<Pkg> | null>(null);

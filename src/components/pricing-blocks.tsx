@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useI18n, pkgText } from "@/lib/i18n";
 
 export function ComingSoonButton() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   return (
     <Button disabled variant="outline" className="w-full">
       {t("Coming soon", "Próximamente")}
@@ -16,7 +16,7 @@ export function ComingSoonButton() {
 }
 
 export function PackageCards({ packages, settings, action }: { packages: Pkg[]; settings: Settings; action?: (p: Pkg) => React.ReactNode }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   return (
     <div className="grid gap-4 md:grid-cols-3">
       {packages.map((p, i) => (
@@ -47,7 +47,7 @@ export function PackageCards({ packages, settings, action }: { packages: Pkg[]; 
 }
 
 export function CompareCost({ packages, settings }: { packages: Pkg[]; settings: Settings }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const hf = hfCostPerTry(settings);
   return (
     <div className="space-y-3">
