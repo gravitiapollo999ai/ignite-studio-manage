@@ -17,3 +17,4 @@
 - Production feed lives at /api/public/jobs-feed (+ /status), authenticated by x-api-key vs JOBS_FEED_API_KEY — external pull-only handoff, no outbound calls to production.
 - Credit purchases go through the PaymentProvider abstraction in src/lib/payments.ts — a Stripe provider can be swapped in without UI changes.
 - All storage buckets are private; files are served via signed URLs (logo uses a long-lived signed URL) — workspace blocks public buckets.
+- Apply supabase/seed.sql after migrations for current pricing; historical migration files are immutable and contain the original seed.

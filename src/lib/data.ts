@@ -19,9 +19,9 @@ export const DEFAULT_SETTINGS: Settings = {
   max_tries_per_video: 2,
   hf_credits_per_30s: 330,
   hf_plus_price: 59,
-  hf_plus_credits: 1200,
+  hf_plus_credits: 1121,
   hf_ultra_price: 129,
-  hf_ultra_credits: 3000,
+  hf_ultra_credits: 2451,
   feed_last_success_at: null,
   updated_at: new Date(0).toISOString(),
 };
