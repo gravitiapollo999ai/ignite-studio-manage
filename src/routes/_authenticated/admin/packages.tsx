@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { brandTitle, type Pkg } from "@/lib/data";
+import { brandTitle, type Pkg , errMsg } from "@/lib/data";
 import { useI18n, pkgText } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/packages")({

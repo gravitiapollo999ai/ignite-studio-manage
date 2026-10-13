@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrandMark } from "@/components/site";
-import { brandTitle } from "@/lib/data";
+import { brandTitle , errMsg } from "@/lib/data";
 import { useI18n } from "@/lib/i18n";
 import { HeaderControls } from "@/components/header-controls";
 

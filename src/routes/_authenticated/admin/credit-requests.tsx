@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Empty, RequestBadge } from "@/components/site";
-import { brandTitle } from "@/lib/data";
+import { brandTitle , errMsg } from "@/lib/data";
 import { useI18n, pkgText } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/credit-requests")({

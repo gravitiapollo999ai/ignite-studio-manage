@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Empty, StatusBadge } from "@/components/site";
-import { balanceQuery, brandTitle, signedUrl } from "@/lib/data";
+import { balanceQuery, brandTitle, signedUrl , errMsg } from "@/lib/data";
 import { BUSINESS_FIELDS } from "@/lib/business";
 import { useI18n } from "@/lib/i18n";
 

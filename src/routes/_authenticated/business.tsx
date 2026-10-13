@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { brandTitle, signedUrl } from "@/lib/data";
+import { brandTitle, signedUrl , errMsg } from "@/lib/data";
 import { BUSINESS_FIELDS } from "@/lib/business";
 import { BUSINESS_TYPES, BUSINESS_TYPES_ES } from "@/lib/pricing";
 import { useI18n } from "@/lib/i18n";
