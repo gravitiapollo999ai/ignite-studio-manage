@@ -58,7 +58,7 @@ function Credits() {
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-2xl font-semibold">Credits</h1>
-          <p className="text-sm text-muted-foreground">Balance: <strong className="text-foreground">{bal.data ?? "…"}</strong> credits · 1 credit per video (up to {s.max_video_seconds}s, 1080p) · Minimum package {s.min_package_videos} videos</p>
+          <p className="text-sm text-muted-foreground">Balance: <strong className="text-foreground">{bal.data ?? "…"}</strong> credits · USD 9 per credit · 1 credit per video (up to {s.max_video_seconds}s, 1080p) · Minimum purchase {s.min_package_videos} credits = USD {s.min_package_videos * 9}</p>
         </div>
         <Button onClick={() => openFor()}>Request credits</Button>
       </div>

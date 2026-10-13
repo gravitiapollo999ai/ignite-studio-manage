@@ -121,7 +121,7 @@ function Landing() {
 
       <section id="packages" className="mx-auto max-w-6xl px-4 py-20">
         <h2 className="text-3xl font-semibold">Packages</h2>
-        <p className="mt-3 text-muted-foreground">Minimum package: {s.min_package_videos} videos. 1 credit per video (up to {s.max_video_seconds}s, 1080p).</p>
+        <p className="mt-3 text-muted-foreground">USD 9 per video credit. Minimum purchase: {s.min_package_videos} credits = USD {s.min_package_videos * 9}. 1 credit per video (up to {s.max_video_seconds}s, 1080p).</p>
         <div className="mt-10"><PackageCards packages={packages} settings={s} /></div>
       </section>
 

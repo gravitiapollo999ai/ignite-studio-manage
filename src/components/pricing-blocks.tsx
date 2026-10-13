@@ -68,7 +68,7 @@ export function CompareCost({ packages, settings }: { packages: Pkg[]; settings:
         </Table>
       </div>
       <p className="text-xs text-muted-foreground">
-        Higgsfield figures are estimates based on configured credit pricing (Seedance, 30s at 1080p). They are not the billing mode used by our own production pipeline.
+        Higgsfield: {settings.hf_credits_per_30s} credits per 30s 1080p video at approximately {Math.round(Number(settings.hf_plus_credits) / Number(settings.hf_plus_price))} credits per $1 — about ${hf.plus.toFixed(0)} per try. Our USD 9 per finished video is about half price. Figures are estimates based on configured credit pricing, not the billing mode used by our own production pipeline.
       </p>
     </div>
   );

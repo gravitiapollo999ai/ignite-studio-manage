@@ -21,10 +21,14 @@ describe("pricing", () => {
     expect(defaultDuration(null, 30)).toBe(15);
   });
   it("parses mm:ss", () => expect(parseMmSs("1:05")).toBe(65));
-  it("Higgsfield estimates: ~$16 Plus, ~$14 Ultra per 30s try", () => {
-    const r = hfCostPerTry({ hf_credits_per_30s: 330, hf_plus_price: 59, hf_plus_credits: 1200, hf_ultra_price: 129, hf_ultra_credits: 3000 });
-    expect(Math.round(r.plus)).toBe(16);
-    expect(Math.round(r.ultra)).toBe(14);
+  it("Higgsfield estimates: 330 credits at 19 credits per USD is about $17", () => {
+    const r = hfCostPerTry({ hf_credits_per_30s: 330, hf_plus_price: 59, hf_plus_credits: 1121, hf_ultra_price: 129, hf_ultra_credits: 2451 });
+    expect(r.plus).toBeCloseTo(330 / 19);
+    expect(r.ultra).toBeCloseTo(330 / 19);
+    expect(Math.round(r.plus)).toBe(17);
+    expect(Math.round(r.ultra)).toBe(17);
   });
-  it("per video price from label", () => expect(perVideoPrice("USD 290", 10)).toBe("USD 29"));
+  it.each([["USD 90", 10], ["USD 225", 25], ["USD 450", 50]])("%s for %i videos costs USD 9 per credit", (label, videos) => {
+    expect(perVideoPrice(label, videos)).toBe("USD 9");
+  });
 });

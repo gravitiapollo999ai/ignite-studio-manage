@@ -76,7 +76,7 @@ export function hfCostPerTry(s: HfSettings) {
   return { plus, ultra };
 }
 
-/** Parses a price label like "USD 290" and returns the per-video price string. */
+/** Parses a price label like "USD 90" and returns the per-video price string. */
 export function perVideoPrice(priceLabel: string, videos: number): string | null {
   const m = /([A-Za-z$€£]*)\s*([\d.,]+)/.exec(priceLabel ?? "");
   if (!m || !videos) return null;
