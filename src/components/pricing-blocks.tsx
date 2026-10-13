@@ -64,13 +64,13 @@ export function CompareCost({ packages, settings }: { packages: Pkg[]; settings:
           <TableBody>
             <TableRow>
               <TableCell className="font-medium">{t("DIY on Higgsfield – Plus", "Por tu cuenta en Higgsfield – Plus")}</TableCell>
-              <TableCell>{t("≈", "≈")} ${hf.plus.toFixed(0)} {t("per try", "por intento")} <span className="text-muted-foreground">({settings.hf_credits_per_30s} {t("credits", "créditos")}; ${settings.hf_plus_price} / {Number(settings.hf_plus_credits).toLocaleString()})</span></TableCell>
+              <TableCell>{t("≈", "≈")} ${hf.plus.toFixed(0)} {t("per try", "por intento")} <span className="text-muted-foreground">({settings.hf_credits_per_30s} {t("credits", "créditos")}; ${settings.hf_plus_price} / {Number(settings.hf_plus_credits).toLocaleString("en-US")})</span></TableCell>
               <TableCell>{t("You", "Tú")}</TableCell>
               <TableCell>{t("You redo and pay again", "Tú rehaces y pagas de nuevo")}</TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="font-medium">{t("DIY on Higgsfield – Ultra", "Por tu cuenta en Higgsfield – Ultra")}</TableCell>
-              <TableCell>{t("≈", "≈")} ${hf.ultra.toFixed(0)} {t("per try", "por intento")} <span className="text-muted-foreground">(${settings.hf_ultra_price} / {Number(settings.hf_ultra_credits).toLocaleString()})</span></TableCell>
+              <TableCell>{t("≈", "≈")} ${hf.ultra.toFixed(0)} {t("per try", "por intento")} <span className="text-muted-foreground">(${settings.hf_ultra_price} / {Number(settings.hf_ultra_credits).toLocaleString("en-US")})</span></TableCell>
               <TableCell>{t("You", "Tú")}</TableCell>
               <TableCell>{t("You redo and pay again", "Tú rehaces y pagas de nuevo")}</TableCell>
             </TableRow>
