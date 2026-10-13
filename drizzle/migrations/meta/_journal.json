@@ -8,6 +8,13 @@
       "when": 1791874321952,
       "tag": "0000_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791913307430,
+      "tag": "0001_staff_roles_business_social",
+      "breakpoints": true
     }
   ]
 }

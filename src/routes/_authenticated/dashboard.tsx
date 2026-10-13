@@ -25,6 +25,7 @@ function Dashboard() {
     queryKey: ["my-requests", "pending"],
     queryFn: async () => (await supabase.from("credit_requests").select("*, packages(name)").eq("status", "pending").order("created_at", { ascending: false })).data ?? [],
   });
+  const biz = useQuery({ queryKey: ["business", user.id], queryFn: async () => (await supabase.from("business_profiles").select("completed,updated_at").eq("user_id", user.id).maybeSingle()).data });
   const jobs = useQuery({
     queryKey: ["my-jobs", "recent"],
     queryFn: async () => (await supabase.from("jobs").select("id,code,status,subject_name,created_at,try_number").order("created_at", { ascending: false }).limit(6)).data ?? [],
@@ -39,6 +40,12 @@ function Dashboard() {
           <Button asChild variant="outline"><Link to="/credits">{t("Request credits", "Solicitar créditos")}</Link></Button>
         </div>
       </div>
+      {biz.isSuccess && !biz.data?.completed && (
+        <Card className="border-primary/40"><CardContent className="flex flex-col justify-between gap-3 pt-6 sm:flex-row sm:items-center">
+          <p className="text-sm">{t("Complete your business profile so we can adapt every video to your brand.", "Completa el perfil de tu negocio para adaptar cada video a tu marca.")}</p>
+          <Button asChild size="sm"><Link to="/business" search={{ onboarding: true }}>{t("Complete profile", "Completar perfil")}</Link></Button>
+        </CardContent></Card>
+      )}
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="bg-hero-glow">
           <CardHeader className="flex-row items-center justify-between space-y-0"><CardTitle className="text-sm text-muted-foreground">{t("Credit balance", "Saldo de créditos")}</CardTitle><Wallet className="h-4 w-4 text-primary" /></CardHeader>
