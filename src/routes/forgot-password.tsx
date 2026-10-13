@@ -30,7 +30,7 @@ function Forgot() {
     setBusy(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email.data, { redirectTo: `${window.location.origin}/reset-password` });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(errMsg(error));
     setSent(true);
     toast.success(t("Reset link sent", "Enlace de restablecimiento enviado"));
   }

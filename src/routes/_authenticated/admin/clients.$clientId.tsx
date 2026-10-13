@@ -41,7 +41,7 @@ function Client() {
   async function addNote() {
     if (!note.trim()) return;
     const { error } = await supabase.from("client_notes").insert({ client_id: clientId, author_id: user.id, note: note.trim() });
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(errMsg(error));
     setNote(""); toast.success(t("Note added", "Nota agregada"));
     qc.invalidateQueries({ queryKey: ["client-notes", clientId] });
   }
@@ -50,7 +50,7 @@ function Client() {
     if (!Number.isInteger(n) || n === 0) return toast.error(t("Enter a whole number like 5 or -2", "Ingresa un número entero como 5 o -2"));
     if (!reason.trim()) return toast.error(t("Reason required", "Se requiere un motivo"));
     const { error } = await supabase.rpc("admin_adjust_credits", { _user_id: clientId, _delta: n, _note: reason.trim() });
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(errMsg(error));
     setDelta(""); setReason(""); toast.success(t("Balance adjusted", "Saldo ajustado"));
     qc.invalidateQueries({ queryKey: ["balance", clientId] });
     qc.invalidateQueries({ queryKey: ["admin-ledger", clientId] });

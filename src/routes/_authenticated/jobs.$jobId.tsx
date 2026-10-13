@@ -57,7 +57,7 @@ function JobDetail() {
     setBusy(true);
     const { error } = await supabase.rpc("request_revision", { _job_id: j!.id, _reason: reason.trim().slice(0, 1000) });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(errMsg(error));
     toast.success(t("Revision requested", "Revisión solicitada"));
     setOpen(false);
     qc.invalidateQueries({ queryKey: ["job", jobId] });

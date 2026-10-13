@@ -66,7 +66,7 @@ function AdminJob() {
     setBusy("status");
     const { error } = await supabase.rpc("set_job_status", { _job_id: j!.id, _status: status, _message: message.trim() });
     setBusy(null);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(errMsg(error));
     toast.success(t(`Status set to ${STATUS_LABELS[status as keyof typeof STATUS_LABELS]}`, `Estado cambiado a ${STATUS_LABELS_ES[status as keyof typeof STATUS_LABELS_ES]}`));
     setMessage(""); refresh();
   }
@@ -74,7 +74,7 @@ function AdminJob() {
     setBusy("internal");
     const { error } = await supabase.from("job_internal").upsert({ job_id: j!.id, internal_prompt: prompt, internal_notes: inotes });
     setBusy(null);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(errMsg(error));
     toast.success(t("Internal prompt saved", "Prompt interno guardado"));
     qc.invalidateQueries({ queryKey: ["job-internal", jobId] });
   }
@@ -96,7 +96,7 @@ function AdminJob() {
   async function removeFile(id: string, path: string) {
     await supabase.storage.from("deliverables").remove([path]);
     const { error } = await supabase.from("deliverables").delete().eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(errMsg(error));
     toast.success(t("File removed", "Archivo eliminado"));
     qc.invalidateQueries({ queryKey: ["admin-deliv", jobId] });
   }
@@ -105,7 +105,7 @@ function AdminJob() {
     if (!Number.isInteger(n) || n <= 0) return toast.error(t("Enter a positive whole number", "Ingresa un número entero positivo"));
     if (!confirm(t(`Refund ${n} credit(s) to the client?`, `¿Reembolsar ${n} crédito(s) al cliente?`))) return;
     const { error } = await supabase.rpc("refund_job", { _job_id: j!.id, _credits: n, _note: `Refund for ${j!.code}` });
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(errMsg(error));
     toast.success(t("Credits refunded", "Créditos reembolsados"));
   }
   async function open(bucket: string, path: string) {

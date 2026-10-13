@@ -46,7 +46,7 @@ function SettingsPage() {
     setBusy(true);
     const { error } = await supabase.from("settings").update(p.data).eq("id", 1);
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(errMsg(error));
     toast.success(t("Settings saved", "Configuración guardada"));
     qc.invalidateQueries({ queryKey: ["settings"] });
   }

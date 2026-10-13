@@ -31,7 +31,7 @@ function Reset() {
     setBusy(true);
     const { error } = await supabase.auth.updateUser({ password: pw });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(errMsg(error));
     toast.success(t("Password updated", "Contraseña actualizada"));
     nav({ to: "/dashboard" });
   }

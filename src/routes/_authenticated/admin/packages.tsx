@@ -40,18 +40,18 @@ function Packages() {
     const p = schema.safeParse(Object.fromEntries(new FormData(e.currentTarget)));
     if (!p.success) return toast.error(`${p.error.issues[0].path[0]}: ${p.error.issues[0].message}`);
     const { error } = edit?.id ? await supabase.from("packages").update(p.data).eq("id", edit.id) : await supabase.from("packages").insert(p.data);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(errMsg(error));
     toast.success(t("Package saved", "Paquete guardado")); setEdit(null); refresh();
   }
   async function toggle(p: Pkg) {
     const { error } = await supabase.from("packages").update({ active: !p.active }).eq("id", p.id);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(errMsg(error));
     refresh();
   }
   async function del(p: Pkg) {
     if (!confirm(t(`Delete ${p.name}?`, `¿Eliminar ${p.name}?`))) return;
     const { error } = await supabase.from("packages").delete().eq("id", p.id);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(errMsg(error));
     toast.success(t("Deleted", "Eliminado")); refresh();
   }
   return (

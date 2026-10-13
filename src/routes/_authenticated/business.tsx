@@ -56,12 +56,12 @@ function Business() {
       if (!/^image\/(png|jpe?g|webp|svg\+xml)$/.test(file.type) || file.size > 5 * 1024 * 1024) { setBusy(false); return toast.error(t("Logo must be PNG, JPG, WEBP or SVG up to 5 MB", "El logo debe ser PNG, JPG, WEBP o SVG de hasta 5 MB")); }
       logo_path = `${user.id}/logo-${Date.now()}.${file.name.split(".").pop()}`;
       const up = await supabase.storage.from("business-logos").upload(logo_path, file, { upsert: true });
-      if (up.error) { setBusy(false); return toast.error(up.error.message); }
+      if (up.error) { setBusy(false); return toast.error(errMsg(up.error)); }
     }
     const row = { ...p.data, user_id: user.id, logo_path, completed: true };
     const { error } = await supabase.from("business_profiles").upsert(row);
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(errMsg(error));
     toast.success(t("Business profile saved", "Perfil del negocio guardado"));
     qc.invalidateQueries({ queryKey: ["business", user.id] });
     if (onboarding) nav({ to: "/dashboard" });
