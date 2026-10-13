@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { enUS, es } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -69,7 +69,7 @@ function AdminJobs() {
               <TableRow key={j.id} className="cursor-pointer">
                 <TableCell><Link to="/admin/jobs/$jobId" params={{ jobId: j.id }} className="font-medium text-primary">{j.code}</Link></TableCell>
                 <TableCell>{name(j.user_id)}</TableCell><TableCell>{j.subject_name}</TableCell><TableCell>{sourceLabels[j.source_type as SourceType]}</TableCell><TableCell>{j.try_number}</TableCell>
-                <TableCell>{format(new Date(j.created_at), "MMM d, HH:mm", { locale: lang === "es" ? es : undefined })}</TableCell><TableCell><StatusBadge status={j.status} /></TableCell>
+                <TableCell>{format(new Date(j.created_at), "MMM d, HH:mm", { locale: lang === "es" ? es : enUS })}</TableCell><TableCell><StatusBadge status={j.status} /></TableCell>
               </TableRow>
             ))}</TableBody></Table>
         </div>

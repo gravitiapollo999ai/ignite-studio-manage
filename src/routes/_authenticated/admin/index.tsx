@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { addHours, formatDistanceToNow } from "date-fns";
-import { es } from "date-fns/locale";
+import { enUS, es } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -38,7 +38,7 @@ function Overview() {
       <Card><CardHeader><CardTitle>{t("Due soon", "Por vencer")}</CardTitle></CardHeader><CardContent>
         {open.length === 0 ? <Empty title={t("No open jobs", "No hay trabajos abiertos")} /> : <div className="divide-y divide-border">{open.map((j) => (
           <Link key={j.id} to="/admin/jobs/$jobId" params={{ jobId: j.id }} className="flex items-center justify-between py-3 hover:bg-accent/40">
-            <div><p className="font-medium">{j.code} · {j.subject_name}</p><p className={`text-sm ${j.due < new Date() ? "text-destructive" : "text-muted-foreground"}`}>{j.due < new Date() ? t("Overdue ", "Vencido ") : t("Due ", "Vence ")}{formatDistanceToNow(j.due, { addSuffix: true, locale: lang === "es" ? es : undefined })}</p></div>
+            <div><p className="font-medium">{j.code} · {j.subject_name}</p><p className={`text-sm ${j.due < new Date() ? "text-destructive" : "text-muted-foreground"}`}>{j.due < new Date() ? t("Overdue ", "Vencido ") : t("Due ", "Vence ")}{formatDistanceToNow(j.due, { addSuffix: true, locale: lang === "es" ? es : enUS })}</p></div>
             <StatusBadge status={j.status} />
           </Link>
         ))}</div>}
