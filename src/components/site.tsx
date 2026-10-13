@@ -1,7 +1,7 @@
 import { Link, rootRouteId, useLoaderData } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Clapperboard } from "lucide-react";
-import { DEFAULT_SETTINGS, settingsQuery } from "@/lib/data";
+import { DEFAULT_SETTINGS, isPlaceholderEmail, settingsQuery } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
 import { STATUS_LABELS, STATUS_LABELS_ES, type JobStatus } from "@/lib/pricing";
 import { useI18n } from "@/lib/i18n";
