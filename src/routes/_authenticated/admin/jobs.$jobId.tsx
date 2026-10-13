@@ -134,7 +134,7 @@ function AdminJob() {
     <div className="space-y-6">
       <Link to="/admin/jobs" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" />{t("All jobs", "Todos los trabajos")}</Link>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div><h1 className="text-2xl font-semibold">{j.code}</h1><p className="text-sm text-muted-foreground">{client.data ? <Link to="/admin/clients/$clientId" params={{ clientId: j.user_id }} className="text-primary">{client.data.company || client.data.full_name || client.data.email}</Link> : "…"} · {format(new Date(j.created_at), "MMM d, yyyy HH:mm", { locale: dateLocale })} · {t("Try", "Intento")} {j.try_number}</p></div>
+        <div><h1 className="text-2xl font-semibold">{j.code}</h1><p className="text-sm text-muted-foreground">{client.data ? <Link to="/admin/clients/$clientId" params={{ clientId: j.user_id }} className="text-primary">{client.data.company || client.data.full_name || client.data.email}</Link> : "…"} · {format(new Date(j.created_at), "MMM d, yyyy HH:mm", { locale: dateLocale as any })} · {t("Try", "Intento")} {j.try_number}</p></div>
         <StatusBadge status={j.status} />
       </div>
 

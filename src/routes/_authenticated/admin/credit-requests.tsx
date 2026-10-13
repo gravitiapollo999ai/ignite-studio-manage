@@ -51,7 +51,7 @@ function Requests() {
           <div key={r.id} className="rounded-xl border border-border bg-card p-4">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div><p className="font-medium">{r.packages?.name ?? t("Credits", "Créditos")} · {r.credits} {t("credits", "créditos")} <span className="text-muted-foreground">({r.packages?.price_label})</span></p>
-                <p className="text-sm text-muted-foreground">{who(r.user_id)} · {format(new Date(r.created_at), "MMM d, HH:mm", { locale: lang === "es" ? es : undefined })}</p>
+                <p className="text-sm text-muted-foreground">{who(r.user_id)} · {format(new Date(r.created_at), "MMM d, HH:mm", { locale: (lang === "es" ? es : undefined) as any })}</p>
                 {r.client_message && <p className="mt-2 text-sm">“{r.client_message}”</p>}
                 {r.admin_note && r.status !== "pending" && <p className="mt-1 text-sm text-muted-foreground">{t("Note", "Nota")}: {r.admin_note}</p>}
               </div>

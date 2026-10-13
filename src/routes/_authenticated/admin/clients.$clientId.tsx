@@ -64,12 +64,12 @@ function Client() {
           <Input placeholder={t("Reason", "Motivo")} value={reason} onChange={(e) => setReason(e.target.value)} />
           <Button className="w-full" onClick={adjust}>{t("Adjust credits", "Ajustar créditos")}</Button>
           <div className="max-h-56 space-y-1 overflow-y-auto pt-2 text-sm">{ledger.data?.map((l) => (
-            <div key={l.id} className="flex justify-between"><span className="text-muted-foreground">{format(new Date(l.created_at), "MMM d", { locale: dateLocale })} · {l.reason}</span><span>{l.delta > 0 ? `+${l.delta}` : l.delta}</span></div>
+            <div key={l.id} className="flex justify-between"><span className="text-muted-foreground">{format(new Date(l.created_at), "MMM d", { locale: dateLocale as any })} · {l.reason}</span><span>{l.delta > 0 ? `+${l.delta}` : l.delta}</span></div>
           ))}</div>
         </CardContent></Card>
         <Card className="lg:col-span-2"><CardHeader><CardTitle>{t("Internal notes", "Notas internas")}</CardTitle></CardHeader><CardContent className="space-y-3">
           <div className="flex gap-2"><Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("Only admins can see this", "Solo los administradores pueden ver esto")} rows={2} /><Button onClick={addNote}>{t("Add", "Agregar")}</Button></div>
-          {notes.data?.map((n) => <div key={n.id} className="rounded-lg bg-secondary p-3 text-sm"><p className="text-xs text-muted-foreground">{format(new Date(n.created_at), "MMM d, HH:mm", { locale: dateLocale })}</p><p className="whitespace-pre-wrap">{n.note}</p></div>)}
+          {notes.data?.map((n) => <div key={n.id} className="rounded-lg bg-secondary p-3 text-sm"><p className="text-xs text-muted-foreground">{format(new Date(n.created_at), "MMM d, HH:mm", { locale: dateLocale as any })}</p><p className="whitespace-pre-wrap">{n.note}</p></div>)}
         </CardContent></Card>
       </div>
       <Card><CardHeader><CardTitle>{t("Jobs", "Trabajos")}</CardTitle></CardHeader><CardContent>
