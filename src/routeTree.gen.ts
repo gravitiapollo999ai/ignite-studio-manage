@@ -35,6 +35,7 @@ import { Route as AuthenticatedAdminClientsClientIdRouteImport } from './routes/
 import { Route as AuthenticatedAdminJobsIndexRouteImport } from './routes/_authenticated/admin/jobs.index'
 import { Route as AuthenticatedAdminJobsJobIdRouteImport } from './routes/_authenticated/admin/jobs.$jobId'
 import { Route as ApiPublicJobsFeedStatusRouteImport } from './routes/api/public/jobs-feed.status'
+import { Route as ApiPublicSpooferStatusRouteImport } from './routes/api/public/spoofer/status'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -173,6 +174,11 @@ const ApiPublicJobsFeedStatusRoute = ApiPublicJobsFeedStatusRouteImport.update({
   path: '/status',
   getParentRoute: () => ApiPublicJobsFeedRoute,
 } as any)
+const ApiPublicSpooferStatusRoute = ApiPublicSpooferStatusRouteImport.update({
+  id: '/api/public/spoofer/status',
+  path: '/api/public/spoofer/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -198,6 +204,7 @@ export interface FileRoutesByFullPath {
   '/admin/clients/$clientId': typeof AuthenticatedAdminClientsClientIdRoute
   '/admin/jobs/$jobId': typeof AuthenticatedAdminJobsJobIdRoute
   '/api/public/jobs-feed/status': typeof ApiPublicJobsFeedStatusRoute
+  '/api/public/spoofer/status': typeof ApiPublicSpooferStatusRoute
   '/admin/clients/': typeof AuthenticatedAdminClientsIndexRoute
   '/admin/jobs/': typeof AuthenticatedAdminJobsIndexRoute
 }
@@ -224,6 +231,7 @@ export interface FileRoutesByTo {
   '/admin/clients/$clientId': typeof AuthenticatedAdminClientsClientIdRoute
   '/admin/jobs/$jobId': typeof AuthenticatedAdminJobsJobIdRoute
   '/api/public/jobs-feed/status': typeof ApiPublicJobsFeedStatusRoute
+  '/api/public/spoofer/status': typeof ApiPublicSpooferStatusRoute
   '/admin/clients': typeof AuthenticatedAdminClientsIndexRoute
   '/admin/jobs': typeof AuthenticatedAdminJobsIndexRoute
 }
@@ -253,6 +261,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/clients/$clientId': typeof AuthenticatedAdminClientsClientIdRoute
   '/_authenticated/admin/jobs/$jobId': typeof AuthenticatedAdminJobsJobIdRoute
   '/api/public/jobs-feed/status': typeof ApiPublicJobsFeedStatusRoute
+  '/api/public/spoofer/status': typeof ApiPublicSpooferStatusRoute
   '/_authenticated/admin/clients/': typeof AuthenticatedAdminClientsIndexRoute
   '/_authenticated/admin/jobs/': typeof AuthenticatedAdminJobsIndexRoute
 }
@@ -282,6 +291,7 @@ export interface FileRouteTypes {
     | '/admin/clients/$clientId'
     | '/admin/jobs/$jobId'
     | '/api/public/jobs-feed/status'
+    | '/api/public/spoofer/status'
     | '/admin/clients/'
     | '/admin/jobs/'
   fileRoutesByTo: FileRoutesByTo
@@ -308,6 +318,7 @@ export interface FileRouteTypes {
     | '/admin/clients/$clientId'
     | '/admin/jobs/$jobId'
     | '/api/public/jobs-feed/status'
+    | '/api/public/spoofer/status'
     | '/admin/clients'
     | '/admin/jobs'
   id:
@@ -336,6 +347,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/clients/$clientId'
     | '/_authenticated/admin/jobs/$jobId'
     | '/api/public/jobs-feed/status'
+    | '/api/public/spoofer/status'
     | '/_authenticated/admin/clients/'
     | '/_authenticated/admin/jobs/'
   fileRoutesById: FileRoutesById
@@ -347,6 +359,7 @@ export interface RootRouteChildren {
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ApiPublicJobsFeedRoute: typeof ApiPublicJobsFeedRouteWithChildren
+  ApiPublicSpooferStatusRoute: typeof ApiPublicSpooferStatusRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -533,6 +546,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicJobsFeedStatusRouteImport
       parentRoute: typeof ApiPublicJobsFeedRoute
     }
+    '/api/public/spoofer/status': {
+      id: '/api/public/spoofer/status'
+      path: '/api/public/spoofer/status'
+      fullPath: '/api/public/spoofer/status'
+      preLoaderRoute: typeof ApiPublicSpooferStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -615,6 +635,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForgotPasswordRoute: ForgotPasswordRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ApiPublicJobsFeedRoute: ApiPublicJobsFeedRouteWithChildren,
+  ApiPublicSpooferStatusRoute: ApiPublicSpooferStatusRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -639,6 +639,108 @@ export type Database = {
           },
         ]
       }
+      spoofer_sync: {
+        Row: {
+          attempts: number
+          created_at: string
+          job_id: string
+          last_error: string | null
+          next_attempt_at: string
+          remote_job_id: string | null
+          remote_status: string | null
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          job_id: string
+          last_error?: string | null
+          next_attempt_at?: string
+          remote_job_id?: string | null
+          remote_status?: string | null
+          state?: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          job_id?: string
+          last_error?: string | null
+          next_attempt_at?: string
+          remote_job_id?: string | null
+          remote_status?: string | null
+          state?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spoofer_sync_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: true
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "spoofer_sync_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: true
+            referencedRelation: "jobs_feed"
+            referencedColumns: ["job_id"]
+          },
+        ]
+      }
+      spoofer_sync_log: {
+        Row: {
+          created_at: string
+          direction: string
+          event: string
+          event_id: string | null
+          http_status: number | null
+          id: string
+          job_id: string | null
+          message: string | null
+          ok: boolean
+        }
+        Insert: {
+          created_at?: string
+          direction: string
+          event: string
+          event_id?: string | null
+          http_status?: number | null
+          id?: string
+          job_id?: string | null
+          message?: string | null
+          ok: boolean
+        }
+        Update: {
+          created_at?: string
+          direction?: string
+          event?: string
+          event_id?: string | null
+          http_status?: number | null
+          id?: string
+          job_id?: string | null
+          message?: string | null
+          ok?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spoofer_sync_log_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "spoofer_sync_log_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_feed"
+            referencedColumns: ["job_id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -788,6 +890,10 @@ export type Database = {
     Functions: {
       admin_adjust_credits: {
         Args: { _delta: number; _note: string; _user_id: string }
+        Returns: undefined
+      }
+      admin_queue_spoofer_sync: {
+        Args: { _job_id: string }
         Returns: undefined
       }
       approve_credit_request: {

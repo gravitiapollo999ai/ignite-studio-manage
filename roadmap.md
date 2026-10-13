@@ -12,3 +12,7 @@
 - [x] Connections page + Post buttons (Coming soon)
 - [ ] Make Apollo first admin — blocked: needs Apollo's exact account email confirmed
 - [ ] Live TikTok/Instagram posting — blocked: developer app keys + platform review
+
+# Spoofer sync
+- [x] Studio side: queue, push, retries, inbound status + final video, logs, admin flags
+- [ ] Live sync — blocked: SPOOFER_SYNC_SECRET not set + Spoofer receiver not built (contract in docs)
