@@ -19,11 +19,19 @@ import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authentic
 import { Route as AuthenticatedCreditsRouteImport } from './routes/_authenticated/credits'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
+import { Route as AuthenticatedAdminApiRouteImport } from './routes/_authenticated/admin/api'
+import { Route as AuthenticatedAdminCreditRequestsRouteImport } from './routes/_authenticated/admin/credit-requests'
+import { Route as AuthenticatedAdminPackagesRouteImport } from './routes/_authenticated/admin/packages'
+import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin/settings'
 import { Route as AuthenticatedJobsIndexRouteImport } from './routes/_authenticated/jobs.index'
 import { Route as AuthenticatedJobsJobIdRouteImport } from './routes/_authenticated/jobs.$jobId'
 import { Route as AuthenticatedJobsNewRouteImport } from './routes/_authenticated/jobs.new'
+import { Route as ApiPublicJobsFeedRouteImport } from './routes/api/public/jobs-feed'
+import { Route as AuthenticatedAdminClientsIndexRouteImport } from './routes/_authenticated/admin/clients.index'
+import { Route as AuthenticatedAdminClientsClientIdRouteImport } from './routes/_authenticated/admin/clients.$clientId'
 import { Route as AuthenticatedAdminJobsIndexRouteImport } from './routes/_authenticated/admin/jobs.index'
 import { Route as AuthenticatedAdminJobsJobIdRouteImport } from './routes/_authenticated/admin/jobs.$jobId'
+import { Route as ApiPublicJobsFeedStatusRouteImport } from './routes/api/public/jobs-feed.status'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -74,6 +82,29 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedAdminApiRoute = AuthenticatedAdminApiRouteImport.update({
+  id: '/api',
+  path: '/api',
+  getParentRoute: () => AuthenticatedAdminRouteRoute,
+} as any)
+const AuthenticatedAdminCreditRequestsRoute =
+  AuthenticatedAdminCreditRequestsRouteImport.update({
+    id: '/credit-requests',
+    path: '/credit-requests',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminPackagesRoute =
+  AuthenticatedAdminPackagesRouteImport.update({
+    id: '/packages',
+    path: '/packages',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminSettingsRoute =
+  AuthenticatedAdminSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedJobsIndexRoute = AuthenticatedJobsIndexRouteImport.update({
   id: '/jobs/',
   path: '/jobs/',
@@ -89,6 +120,23 @@ const AuthenticatedJobsNewRoute = AuthenticatedJobsNewRouteImport.update({
   path: '/jobs/new',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicJobsFeedRoute = ApiPublicJobsFeedRouteImport.update({
+  id: '/api/public/jobs-feed',
+  path: '/api/public/jobs-feed',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAdminClientsIndexRoute =
+  AuthenticatedAdminClientsIndexRouteImport.update({
+    id: '/clients/',
+    path: '/clients/',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminClientsClientIdRoute =
+  AuthenticatedAdminClientsClientIdRouteImport.update({
+    id: '/clients/$clientId',
+    path: '/clients/$clientId',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminJobsIndexRoute =
   AuthenticatedAdminJobsIndexRouteImport.update({
     id: '/jobs/',
@@ -101,6 +149,11 @@ const AuthenticatedAdminJobsJobIdRoute =
     path: '/jobs/$jobId',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const ApiPublicJobsFeedStatusRoute = ApiPublicJobsFeedStatusRouteImport.update({
+  id: '/status',
+  path: '/status',
+  getParentRoute: () => ApiPublicJobsFeedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -111,11 +164,19 @@ export interface FileRoutesByFullPath {
   '/account': typeof AuthenticatedAccountRoute
   '/credits': typeof AuthenticatedCreditsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/admin/api': typeof AuthenticatedAdminApiRoute
+  '/admin/credit-requests': typeof AuthenticatedAdminCreditRequestsRoute
+  '/admin/packages': typeof AuthenticatedAdminPackagesRoute
+  '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/jobs/new': typeof AuthenticatedJobsNewRoute
+  '/api/public/jobs-feed': typeof ApiPublicJobsFeedRouteWithChildren
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/jobs/': typeof AuthenticatedJobsIndexRoute
+  '/admin/clients/$clientId': typeof AuthenticatedAdminClientsClientIdRoute
   '/admin/jobs/$jobId': typeof AuthenticatedAdminJobsJobIdRoute
+  '/api/public/jobs-feed/status': typeof ApiPublicJobsFeedStatusRoute
+  '/admin/clients/': typeof AuthenticatedAdminClientsIndexRoute
   '/admin/jobs/': typeof AuthenticatedAdminJobsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -126,11 +187,19 @@ export interface FileRoutesByTo {
   '/account': typeof AuthenticatedAccountRoute
   '/credits': typeof AuthenticatedCreditsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/admin/api': typeof AuthenticatedAdminApiRoute
+  '/admin/credit-requests': typeof AuthenticatedAdminCreditRequestsRoute
+  '/admin/packages': typeof AuthenticatedAdminPackagesRoute
+  '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/jobs/new': typeof AuthenticatedJobsNewRoute
+  '/api/public/jobs-feed': typeof ApiPublicJobsFeedRouteWithChildren
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/jobs': typeof AuthenticatedJobsIndexRoute
+  '/admin/clients/$clientId': typeof AuthenticatedAdminClientsClientIdRoute
   '/admin/jobs/$jobId': typeof AuthenticatedAdminJobsJobIdRoute
+  '/api/public/jobs-feed/status': typeof ApiPublicJobsFeedStatusRoute
+  '/admin/clients': typeof AuthenticatedAdminClientsIndexRoute
   '/admin/jobs': typeof AuthenticatedAdminJobsIndexRoute
 }
 export interface FileRoutesById {
@@ -144,11 +213,19 @@ export interface FileRoutesById {
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/credits': typeof AuthenticatedCreditsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/admin/api': typeof AuthenticatedAdminApiRoute
+  '/_authenticated/admin/credit-requests': typeof AuthenticatedAdminCreditRequestsRoute
+  '/_authenticated/admin/packages': typeof AuthenticatedAdminPackagesRoute
+  '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/_authenticated/jobs/new': typeof AuthenticatedJobsNewRoute
+  '/api/public/jobs-feed': typeof ApiPublicJobsFeedRouteWithChildren
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/jobs/': typeof AuthenticatedJobsIndexRoute
+  '/_authenticated/admin/clients/$clientId': typeof AuthenticatedAdminClientsClientIdRoute
   '/_authenticated/admin/jobs/$jobId': typeof AuthenticatedAdminJobsJobIdRoute
+  '/api/public/jobs-feed/status': typeof ApiPublicJobsFeedStatusRoute
+  '/_authenticated/admin/clients/': typeof AuthenticatedAdminClientsIndexRoute
   '/_authenticated/admin/jobs/': typeof AuthenticatedAdminJobsIndexRoute
 }
 export interface FileRouteTypes {
@@ -162,11 +239,19 @@ export interface FileRouteTypes {
     | '/account'
     | '/credits'
     | '/dashboard'
+    | '/admin/api'
+    | '/admin/credit-requests'
+    | '/admin/packages'
+    | '/admin/settings'
     | '/jobs/$jobId'
     | '/jobs/new'
+    | '/api/public/jobs-feed'
     | '/admin/'
     | '/jobs/'
+    | '/admin/clients/$clientId'
     | '/admin/jobs/$jobId'
+    | '/api/public/jobs-feed/status'
+    | '/admin/clients/'
     | '/admin/jobs/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -177,11 +262,19 @@ export interface FileRouteTypes {
     | '/account'
     | '/credits'
     | '/dashboard'
+    | '/admin/api'
+    | '/admin/credit-requests'
+    | '/admin/packages'
+    | '/admin/settings'
     | '/jobs/$jobId'
     | '/jobs/new'
+    | '/api/public/jobs-feed'
     | '/admin'
     | '/jobs'
+    | '/admin/clients/$clientId'
     | '/admin/jobs/$jobId'
+    | '/api/public/jobs-feed/status'
+    | '/admin/clients'
     | '/admin/jobs'
   id:
     | '__root__'
@@ -194,11 +287,19 @@ export interface FileRouteTypes {
     | '/_authenticated/account'
     | '/_authenticated/credits'
     | '/_authenticated/dashboard'
+    | '/_authenticated/admin/api'
+    | '/_authenticated/admin/credit-requests'
+    | '/_authenticated/admin/packages'
+    | '/_authenticated/admin/settings'
     | '/_authenticated/jobs/$jobId'
     | '/_authenticated/jobs/new'
+    | '/api/public/jobs-feed'
     | '/_authenticated/admin/'
     | '/_authenticated/jobs/'
+    | '/_authenticated/admin/clients/$clientId'
     | '/_authenticated/admin/jobs/$jobId'
+    | '/api/public/jobs-feed/status'
+    | '/_authenticated/admin/clients/'
     | '/_authenticated/admin/jobs/'
   fileRoutesById: FileRoutesById
 }
@@ -208,6 +309,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiPublicJobsFeedRoute: typeof ApiPublicJobsFeedRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -282,6 +384,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/api': {
+      id: '/_authenticated/admin/api'
+      path: '/api'
+      fullPath: '/admin/api'
+      preLoaderRoute: typeof AuthenticatedAdminApiRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/credit-requests': {
+      id: '/_authenticated/admin/credit-requests'
+      path: '/credit-requests'
+      fullPath: '/admin/credit-requests'
+      preLoaderRoute: typeof AuthenticatedAdminCreditRequestsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/packages': {
+      id: '/_authenticated/admin/packages'
+      path: '/packages'
+      fullPath: '/admin/packages'
+      preLoaderRoute: typeof AuthenticatedAdminPackagesRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/settings': {
+      id: '/_authenticated/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AuthenticatedAdminSettingsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/jobs/': {
       id: '/_authenticated/jobs/'
       path: '/jobs'
@@ -303,6 +433,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedJobsNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/jobs-feed': {
+      id: '/api/public/jobs-feed'
+      path: '/api/public/jobs-feed'
+      fullPath: '/api/public/jobs-feed'
+      preLoaderRoute: typeof ApiPublicJobsFeedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/admin/clients/': {
+      id: '/_authenticated/admin/clients/'
+      path: '/clients'
+      fullPath: '/admin/clients/'
+      preLoaderRoute: typeof AuthenticatedAdminClientsIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/clients/$clientId': {
+      id: '/_authenticated/admin/clients/$clientId'
+      path: '/clients/$clientId'
+      fullPath: '/admin/clients/$clientId'
+      preLoaderRoute: typeof AuthenticatedAdminClientsClientIdRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/jobs/': {
       id: '/_authenticated/admin/jobs/'
       path: '/jobs'
@@ -317,19 +468,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminJobsJobIdRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/api/public/jobs-feed/status': {
+      id: '/api/public/jobs-feed/status'
+      path: '/status'
+      fullPath: '/api/public/jobs-feed/status'
+      preLoaderRoute: typeof ApiPublicJobsFeedStatusRouteImport
+      parentRoute: typeof ApiPublicJobsFeedRoute
+    }
   }
 }
 
 interface AuthenticatedAdminRouteRouteChildren {
+  AuthenticatedAdminApiRoute: typeof AuthenticatedAdminApiRoute
+  AuthenticatedAdminCreditRequestsRoute: typeof AuthenticatedAdminCreditRequestsRoute
+  AuthenticatedAdminPackagesRoute: typeof AuthenticatedAdminPackagesRoute
+  AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+  AuthenticatedAdminClientsClientIdRoute: typeof AuthenticatedAdminClientsClientIdRoute
   AuthenticatedAdminJobsJobIdRoute: typeof AuthenticatedAdminJobsJobIdRoute
+  AuthenticatedAdminClientsIndexRoute: typeof AuthenticatedAdminClientsIndexRoute
   AuthenticatedAdminJobsIndexRoute: typeof AuthenticatedAdminJobsIndexRoute
 }
 
 const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
   {
+    AuthenticatedAdminApiRoute: AuthenticatedAdminApiRoute,
+    AuthenticatedAdminCreditRequestsRoute:
+      AuthenticatedAdminCreditRequestsRoute,
+    AuthenticatedAdminPackagesRoute: AuthenticatedAdminPackagesRoute,
+    AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
     AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+    AuthenticatedAdminClientsClientIdRoute:
+      AuthenticatedAdminClientsClientIdRoute,
     AuthenticatedAdminJobsJobIdRoute: AuthenticatedAdminJobsJobIdRoute,
+    AuthenticatedAdminClientsIndexRoute: AuthenticatedAdminClientsIndexRoute,
     AuthenticatedAdminJobsIndexRoute: AuthenticatedAdminJobsIndexRoute,
   }
 
@@ -361,12 +533,24 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface ApiPublicJobsFeedRouteChildren {
+  ApiPublicJobsFeedStatusRoute: typeof ApiPublicJobsFeedStatusRoute
+}
+
+const ApiPublicJobsFeedRouteChildren: ApiPublicJobsFeedRouteChildren = {
+  ApiPublicJobsFeedStatusRoute: ApiPublicJobsFeedStatusRoute,
+}
+
+const ApiPublicJobsFeedRouteWithChildren =
+  ApiPublicJobsFeedRoute._addFileChildren(ApiPublicJobsFeedRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ApiPublicJobsFeedRoute: ApiPublicJobsFeedRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

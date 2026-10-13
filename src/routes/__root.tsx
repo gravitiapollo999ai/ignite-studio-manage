@@ -98,7 +98,8 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function BrandAccent() {
-  const { data } = useQuery(settingsQuery);
+  const { settings } = Route.useLoaderData();
+  const { data } = useQuery({ ...settingsQuery, initialData: settings });
   useEffect(() => {
     if (data?.accent_color) document.documentElement.style.setProperty("--brand", data.accent_color);
   }, [data?.accent_color]);

@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, rootRouteId, useLoaderData } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Clapperboard } from "lucide-react";
 import { DEFAULT_SETTINGS, settingsQuery } from "@/lib/data";
@@ -7,7 +7,8 @@ import { STATUS_LABELS, type JobStatus } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 
 export function useSettings() {
-  const { data } = useQuery(settingsQuery);
+  const root = useLoaderData({ from: rootRouteId }) as { settings?: typeof DEFAULT_SETTINGS } | undefined;
+  const { data } = useQuery({ ...settingsQuery, initialData: root?.settings ?? DEFAULT_SETTINGS });
   return data ?? DEFAULT_SETTINGS;
 }
 
