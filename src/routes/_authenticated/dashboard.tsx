@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Empty, RequestBadge, StatusBadge } from "@/components/site";
 import { balanceQuery, brandTitle } from "@/lib/data";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, pkgText } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: ({ matches }) => ({ meta: [{ title: brandTitle(matches, "Dashboard") }] }),
@@ -52,7 +52,7 @@ function Dashboard() {
           <CardContent className="space-y-2">
             {reqs.isLoading ? <Skeleton className="h-8" /> : reqs.data!.length === 0 ? <p className="text-sm text-muted-foreground">{t("No pending requests.", "No hay solicitudes pendientes.")}</p> : reqs.data!.map((r) => (
               <div key={r.id} className="flex items-center justify-between text-sm">
-                <span>{r.packages?.name ?? t("Credits", "Créditos")} · {t(`${r.credits} credits`, `${r.credits} créditos`)}</span>
+                <span>{(r.packages?.name && pkgText(r.packages.name, lang)) || t("Credits", "Créditos")} · {t(`${r.credits} credits`, `${r.credits} créditos`)}</span>
                 <span className="flex items-center gap-2 text-muted-foreground">{format(new Date(r.created_at), "MMM d", dateLocale)}<RequestBadge status={r.status} /></span>
               </div>
             ))}
