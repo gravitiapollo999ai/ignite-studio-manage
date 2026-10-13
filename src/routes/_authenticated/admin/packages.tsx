@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { brandTitle, type Pkg } from "@/lib/data";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, pkgText } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/packages")({
   head: ({ matches }) => ({ meta: [{ title: brandTitle(matches, "Admin · Packages") }] }),
@@ -60,7 +60,7 @@ function Packages() {
       {pkgs.isLoading ? <Skeleton className="h-40" /> : (
         <div className="divide-y divide-border rounded-xl border border-border bg-card">{pkgs.data!.map((p) => (
           <div key={p.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
-            <div><p className="font-medium">{p.name}</p><p className="text-sm text-muted-foreground">{p.videos} {t("videos", "videos")} · {p.credits} {t("credits", "créditos")} · {p.price_label}</p></div>
+            <div><p className="font-medium">{pkgText(p.name, lang)}</p><p className="text-sm text-muted-foreground">{p.videos} {t("videos", "videos")} · {p.credits} {t("credits", "créditos")} · {p.price_label}</p></div>
             <div className="flex items-center gap-2"><Switch checked={p.active} onCheckedChange={() => toggle(p)} aria-label={t("Active", "Activo")} /><Button size="sm" variant="outline" onClick={() => setEdit(p)}>{t("Edit", "Editar")}</Button><Button size="sm" variant="ghost" onClick={() => del(p)}>{t("Delete", "Eliminar")}</Button></div>
           </div>
         ))}</div>

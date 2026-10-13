@@ -31,3 +31,18 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 export function useI18n() {
   return useContext(I18nCtx);
 }
+
+/** Spanish display text for the stock package names/descriptions stored in the database. Unknown text (admin-edited) is shown as stored. */
+const PKG_ES: Record<string, string> = {
+  "Starter – 10 videos": "Inicial – 10 videos",
+  "Growth – 25 videos": "Crecimiento – 25 videos",
+  "Scale – 50 videos": "Escala – 50 videos",
+  "Test the format with your business.": "Prueba el formato con tu negocio.",
+  "A steady flow of fresh content every month.": "Un flujo constante de contenido nuevo cada mes.",
+  "High-volume content for brands that post daily.": "Contenido en volumen para marcas que publican a diario.",
+};
+
+export function pkgText(text: string | null | undefined, lang: Lang): string {
+  if (!text) return text ?? "";
+  return lang === "es" ? (PKG_ES[text.trim()] ?? text) : text;
+}

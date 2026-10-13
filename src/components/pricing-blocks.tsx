@@ -4,7 +4,7 @@ import { hfCostPerTry, perVideoPrice } from "@/lib/pricing";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, pkgText } from "@/lib/i18n";
 
 export function ComingSoonButton() {
   const { t } = useI18n();
@@ -22,12 +22,12 @@ export function PackageCards({ packages, settings, action }: { packages: Pkg[]; 
       {packages.map((p, i) => (
         <Card key={p.id} className={i === 1 ? "border-primary shadow-lg" : ""}>
           <CardHeader>
-            <CardTitle className="text-lg">{p.name}</CardTitle>
+            <CardTitle className="text-lg">{pkgText(p.name, lang)}</CardTitle>
             <p className="text-3xl font-semibold font-display">{p.price_label}</p>
             <p className="text-sm text-muted-foreground">{p.credits} {t("credits", "créditos")} · {perVideoPrice(p.price_label, p.videos) ?? "—"} {t("per video", "por video")}</p>
           </CardHeader>
           <CardContent className="space-y-3">
-            {p.description && <p className="text-sm text-muted-foreground">{p.description}</p>}
+            {p.description && <p className="text-sm text-muted-foreground">{pkgText(p.description, lang)}</p>}
             <ul className="space-y-1.5 text-sm">
               {[
                 t(`${p.videos} finished videos`, `${p.videos} videos terminados`),
@@ -76,7 +76,7 @@ export function CompareCost({ packages, settings }: { packages: Pkg[]; settings:
             </TableRow>
             {packages.map((p) => (
               <TableRow key={p.id} className="bg-accent/50">
-                <TableCell className="font-medium">{t("Us", "Nosotros")} – {p.name}</TableCell>
+                <TableCell className="font-medium">{t("Us", "Nosotros")} – {pkgText(p.name, lang)}</TableCell>
                 <TableCell>{perVideoPrice(p.price_label, p.videos) ?? p.price_label} {t("per finished video (1 credit)", "por video terminado (1 crédito)")}</TableCell>
                 <TableCell>{t("Our team", "Nuestro equipo")}</TableCell>
                 <TableCell>{t(`Up to ${settings.max_tries_per_video} tries included`, `Hasta ${settings.max_tries_per_video} intentos incluidos`)}</TableCell>

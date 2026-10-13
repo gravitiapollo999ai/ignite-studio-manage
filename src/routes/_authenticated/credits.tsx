@@ -17,7 +17,7 @@ import { Empty, RequestBadge, useSettings } from "@/components/site";
 import { CompareCost, ComingSoonButton, PackageCards } from "@/components/pricing-blocks";
 import { balanceQuery, brandTitle, errMsg, packagesQuery } from "@/lib/data";
 import { paymentProvider } from "@/lib/payments";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, pkgText } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/credits")({
   head: ({ matches }) => ({ meta: [{ title: brandTitle(matches, "Credits") }] }),
@@ -82,7 +82,7 @@ function Credits() {
             {reqs.data?.length === 0 ? <Empty title={t("No requests yet", "Aún no hay solicitudes")} /> : (
               <Table><TableHeader><TableRow><TableHead>{t("Date", "Fecha")}</TableHead><TableHead>{t("Package", "Paquete")}</TableHead><TableHead>{t("Credits", "Créditos")}</TableHead><TableHead>{t("Status", "Estado")}</TableHead></TableRow></TableHeader>
                 <TableBody>{reqs.data?.map((r) => (
-                  <TableRow key={r.id}><TableCell>{format(new Date(r.created_at), "MMM d", dateLocale)}</TableCell><TableCell>{r.packages?.name ?? "—"}{r.admin_note && <p className="text-xs text-muted-foreground">{r.admin_note}</p>}</TableCell><TableCell>{r.credits}</TableCell><TableCell><RequestBadge status={r.status} /></TableCell></TableRow>
+                  <TableRow key={r.id}><TableCell>{format(new Date(r.created_at), "MMM d", dateLocale)}</TableCell><TableCell>{pkgText(r.packages?.name, lang) || "—"}{r.admin_note && <p className="text-xs text-muted-foreground">{r.admin_note}</p>}</TableCell><TableCell>{r.credits}</TableCell><TableCell><RequestBadge status={r.status} /></TableCell></TableRow>
                 ))}</TableBody></Table>
             )}
           </CardContent>
@@ -105,7 +105,7 @@ function Credits() {
           <div className="space-y-4">
             <div className="space-y-2"><Label>{t("Package", "Paquete")}</Label>
               <Select value={pkgId} onValueChange={setPkgId}><SelectTrigger><SelectValue placeholder={t("Choose a package", "Elige un paquete")} /></SelectTrigger>
-                <SelectContent>{pkgs.data?.map((p) => <SelectItem key={p.id} value={p.id}>{p.name} — {p.price_label}</SelectItem>)}</SelectContent></Select>
+                <SelectContent>{pkgs.data?.map((p) => <SelectItem key={p.id} value={p.id}>{pkgText(p.name, lang)} — {p.price_label}</SelectItem>)}</SelectContent></Select>
             </div>
             <div className="space-y-2"><Label>{t("Message (optional)", "Mensaje (opcional)")}</Label><Textarea value={msg} onChange={(e) => setMsg(e.target.value)} maxLength={1000} placeholder={t("Anything we should know?", "¿Algo que debamos saber?")} /></div>
             <p className="text-xs text-muted-foreground">{t("We'll confirm payment details with you and add the credits once approved.", "Confirmaremos los detalles de pago contigo y agregaremos los créditos una vez aprobados.")}</p>
