@@ -15,6 +15,8 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { settingsQuery } from "@/lib/data";
+import { I18nProvider, useI18n } from "@/lib/i18n";
+import { HeaderControls, THEME_SCRIPT } from "@/components/header-controls";
 
 function NotFoundComponent() {
   return (
@@ -85,8 +87,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <HeadContent />
       </head>
       <body>
@@ -127,7 +130,9 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <BrandAccent />
       <AuthSync />
-      <Outlet />
+      <I18nProvider>
+        <Outlet />
+      </I18nProvider>
       <Toaster richColors position="top-center" />
     </QueryClientProvider>
   );

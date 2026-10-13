@@ -105,8 +105,7 @@
   --hero-glow: radial-gradient(60% 60% at 50% 0%, color-mix(in oklch, var(--brand) 22%, transparent), transparent 70%);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
+.dark {
     --background: oklch(0.17 0.008 260);
     --foreground: oklch(0.96 0.003 90);
     --card: oklch(0.21 0.008 260);
@@ -126,7 +125,6 @@
     --sidebar-accent-foreground: oklch(0.96 0.003 90);
     --sidebar-border: oklch(1 0 0 / 10%);
   }
-}
 
 @layer base {
   * {
