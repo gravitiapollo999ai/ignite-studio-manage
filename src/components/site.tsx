@@ -1,7 +1,7 @@
 import { Link, rootRouteId, useLoaderData } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Clapperboard } from "lucide-react";
-import { DEFAULT_SETTINGS, settingsQuery } from "@/lib/data";
+import { DEFAULT_SETTINGS, isPlaceholderEmail, settingsQuery } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
 import { STATUS_LABELS, STATUS_LABELS_ES, type JobStatus } from "@/lib/pricing";
 import { useI18n } from "@/lib/i18n";
@@ -36,7 +36,9 @@ export function SiteFooter() {
     <footer className="border-t border-border py-8 text-sm text-muted-foreground">
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 sm:flex-row">
         <span>© {new Date().getFullYear()} {s.brand_name}. {t("All rights reserved.", "Todos los derechos reservados.")}</span>
-        <a href={`mailto:${s.support_email}`} className="hover:text-foreground">{s.support_email}</a>
+        {!isPlaceholderEmail(s.support_email) && (
+          <a href={`mailto:${s.support_email}`} className="hover:text-foreground">{s.support_email}</a>
+        )}
       </div>
     </footer>
   );

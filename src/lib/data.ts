@@ -26,6 +26,13 @@ export const DEFAULT_SETTINGS: Settings = {
   updated_at: new Date(0).toISOString(),
 };
 
+// Placeholder/example support addresses must never be shown to clients.
+export function isPlaceholderEmail(email: string | null | undefined): boolean {
+  if (!email) return true;
+  const e = email.trim().toLowerCase();
+  return e.endsWith("@example.com") || e.endsWith("@example.org") || e.endsWith("@example.net") || e.endsWith(".test");
+}
+
 export async function fetchSettings(): Promise<Settings> {
   const { data } = await supabase.from("settings").select("*").eq("id", 1).maybeSingle();
   return data ?? DEFAULT_SETTINGS;
