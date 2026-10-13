@@ -19,6 +19,8 @@ import { balanceQuery, brandTitle, errMsg } from "@/lib/data";
 import { useI18n } from "@/lib/i18n";
 import { BUSINESS_TYPES, BUSINESS_TYPES_ES, SOURCE_LABELS, defaultDuration, detectPlatform, formatMmSs, jobCost, parseMmSs, type SourceType } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
+import { useServerFn } from "@tanstack/react-start";
+import { dispatchJobSync } from "@/lib/spoofer.functions";
 
 export const Route = createFileRoute("/_authenticated/jobs/new")({
   head: ({ matches }) => ({ meta: [{ title: brandTitle(matches, "New video") }] }),
@@ -152,6 +154,8 @@ function NewJob() {
         _notes: notes.trim(),
       });
       if (error) throw error;
+      // Fire-and-forget production sync; failures are retried and flagged for admins, never shown to clients.
+      dispatchSync({ data: { jobId: data as string } }).catch(() => {});
       toast.success(t("Video ordered! We're on it.", "¡Video solicitado! Ya estamos en ello."));
       qc.invalidateQueries();
       nav({ to: "/jobs/$jobId", params: { jobId: data as string } });
