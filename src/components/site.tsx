@@ -36,7 +36,9 @@ export function SiteFooter() {
     <footer className="border-t border-border py-8 text-sm text-muted-foreground">
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 sm:flex-row">
         <span>© {new Date().getFullYear()} {s.brand_name}. {t("All rights reserved.", "Todos los derechos reservados.")}</span>
-        <a href={`mailto:${s.support_email}`} className="hover:text-foreground">{s.support_email}</a>
+        {!isPlaceholderEmail(s.support_email) && (
+          <a href={`mailto:${s.support_email}`} className="hover:text-foreground">{s.support_email}</a>
+        )}
       </div>
     </footer>
   );
