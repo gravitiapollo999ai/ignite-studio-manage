@@ -135,19 +135,26 @@ Rollback: flag OFF instantly returns to the legacy callback; no schema rollback 
 - **Tests:** a pure `computeEta` with fixed clocks covering each stage, queue depth, overrides winning, the floor and delivered/cancelled → none. Plus a permission test that a client cannot set overrides.
 
 ## Verification and publication order
-1. Independent source review of all unpublished changes (migrations 0005–0008 already applied, the delivery and 30 s code, plus the new items 1, 3, 4 and 5).
-2. Implement in this order: 4 (gap fixes), 3, 5, 1. Item 2 needs no change.
-3. Unit tests: full suite. Re-run the rewritten fixture-only DB script on JOB-000004.
-4. Fixture-only endpoint E2E against the preview: a signed HMAC request for JOB-000004 (already delivered, so `already_completed` + receipt) and a cross-check with Spoofer fixture `dc823c96…` once Spoofer is aligned. No real mail and no Generate.
-5. Captain review of the PASS/FAIL/UNTESTED report.
-6. After captain OK: publish Studio (including the earlier lock/lease repairs), then Spoofer alignment, then signed-in live checks (admin JOB-000002 playback, invariant read-back).
+1. Implement in the mandated order: (a) DeepSeek brief helper and Seedance writer (section 1), (b) inline player (section 2, verify only), (c) 30 s policy (section 3), (d) delivery gap fixes with email on hold (section 4), (e) ETA (section 5).
+   - Hard dependencies (no reordering): (a) is built and tested with a mocked provider and stays fail-closed until the human enters `DEEPSEEK_API_KEY`; the live DeepSeek check happens after the key is entered. (c)'s segment fields go into the intake payload that (d)'s staged release carries, so the Spoofer receiver-tolerance check (Stage 1) gates sending them.
+2. After the build: open the secure Secrets form with name `DEEPSEEK_API_KEY` prefilled and the value blank, for human entry. Credentials are never invented, read or entered by us. Email and domain are not configured.
+3. Independent source review of both projects together (Studio: migrations 0005–0008 plus new ones, delivery, 30 s, items a–e; Spoofer: sender, flag, receiver tolerance).
+4. Tests: Studio unit suite; the rewritten fixture-only DB script pinned to JOB-000004 with claims scoped to it; Spoofer's suites; then Stage 2 compatibility proofs on both previews, using Spoofer fixture `dc823c96…`.
+5. Real-client E2E on the preview (upload length handling, DeepSeek helper, player, delivery):
+   - Use only the pinned synthetic fixtures.
+   - A real signed-in client order would require an existing client session and would charge 1 credit, so it's reported as a dependency for captain decision. No accounts are created and no charge happens without review.
+   - Record credits before and after.
+   - No production Generate and no real mail.
+6. PASS/FAIL/UNTESTED report, then captain release gate.
+7. Coordinated publish following Stages 4→5→6, then signed-in live checks: admin playback of JOB-000002, invariant read-back (JOB-000002/JOB-000003, balance 49, ledger counts), legacy callback still working.
 
 ## Current status
 - **PASS (reported):** Studio 75 unit / 24 DB; Spoofer 106 unit / 26 DB.
 - **UNTESTED:** full endpoint E2E, owner-client playback, live email (blocked).
 
 ## Blocking dependencies
-- `DEEPSEEK_API_KEY` for item 1, secure handoff after OK.
-- An owned email domain/provider for any email sending.
-- Spoofer editor changes for the size field, caps and receipt verification.
+- `DEEPSEEK_API_KEY` entered by a human in the secure form, needed for the live part of (a).
+- An owned email domain/provider for any email sending (on hold).
+- Spoofer editor changes: sender, flag, receiver tolerance, caps and receipt verification.
+- An existing client session, plus approval of a 1-credit charge, for any real-client order E2E.
 - Roberto's own confirmation for owner-side playback.
