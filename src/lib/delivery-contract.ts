@@ -4,10 +4,75 @@
 export const DELIVER_PATH = "/api/public/deliver-video";
 export const SIGNATURE_VERSION = "v1";
 export const MAX_CLOCK_SKEW_SECONDS = 300;
-/** Request body and MP4 are fully buffered in Worker memory (not streamed) — keep well under the 128 MB isolate limit. */
-export const MAX_VIDEO_BYTES = 100 * 1024 * 1024;
+/**
+ * Everything is buffered in Worker memory (NOT streamed). Peak memory ≈ 3× for multipart (raw body + form parse + file copy)
+ * and ≈ 1× (+ upload) for signed-URL mode, so limits stay far below the 128 MB isolate cap. Signed-URL mode is preferred.
+ */
+export const MAX_MULTIPART_VIDEO_BYTES = 20 * 1024 * 1024;
+export const MAX_URL_VIDEO_BYTES = 40 * 1024 * 1024;
 export const MAX_JSON_BYTES = 16 * 1024;
 export const URL_FETCH_TIMEOUT_MS = 60_000;
+export const BODY_READ_TIMEOUT_MS = 30_000;
+/** Spoofer's storage host (observed, non-credential). Signed final URLs must use exactly this host. */
+export const SPOOFER_STORAGE_HOST = "lcvqhteqxwbelvqdafni.supabase.co";
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+/** Cheap header-envelope check done BEFORE reading any body bytes. */
+export function precheckEnvelope(h: SigHeaders, nowSeconds: number): null | "missing" | "malformed" | "stale" {
+  if (!h.timestamp || !h.nonce || !h.contentSha || !h.signature) return "missing";
+  if (!/^\d{9,11}$/.test(h.timestamp) || !/^[A-Za-z0-9_-]{16,128}$/.test(h.nonce) || !/^[0-9a-f]{64}$/.test(h.contentSha) || !/^v1=[0-9a-f]{64}$/.test(h.signature)) return "malformed";
+  if (Math.abs(nowSeconds - Number(h.timestamp)) > MAX_CLOCK_SKEW_SECONDS) return "stale";
+  return null;
+}
+
+/**
+ * Exact signed final URL: https://<SPOOFER_STORAGE_HOST>/storage/v1/object/sign/studio-inputs/finals/<receiverJobId>/final.mp4?token=…
+ * receiverJobId must equal the Spoofer job id Studio recorded for this job (trusted mapping), never a value from the request.
+ */
+export function isAllowedFinalUrl(url: string, receiverJobId: string | null | undefined, host = SPOOFER_STORAGE_HOST): boolean {
+  if (!receiverJobId || !UUID.test(receiverJobId)) return false;
+  if (/[\\\s]|%2f|%5c|%2e/i.test(url)) return false;
+  let u: URL;
+  try { u = new URL(url); } catch { return false; }
+  if (u.protocol !== "https:" || u.username || u.password || u.port || u.hash) return false;
+  if (u.hostname !== host) return false;
+  if (u.pathname !== `/storage/v1/object/sign/studio-inputs/finals/${receiverJobId}/final.mp4`) return false;
+  const keys = [...u.searchParams.keys()];
+  return keys.length === 1 && keys[0] === "token" && !!u.searchParams.get("token");
+}
+
+/**
+ * Reads at most `max` bytes with a wall-clock deadline; cancels the stream on overflow/timeout.
+ * Pre-allocates once when the expected length is known (no chunk-merge copy).
+ */
+export async function readBounded(stream: ReadableStream<Uint8Array> | null, max: number, timeoutMs: number, expected?: number):
+  Promise<{ ok: true; bytes: Uint8Array } | { ok: false; reason: "too_large" | "timeout" | "length_mismatch" }> {
+  if (!stream) return { ok: true, bytes: new Uint8Array() };
+  const reader = stream.getReader();
+  const deadline = Date.now() + timeoutMs;
+  const pre = expected && expected > 0 && expected <= max ? new Uint8Array(expected) : null;
+  const parts: Uint8Array[] = []; let total = 0;
+  try {
+    for (;;) {
+      const left = deadline - Date.now();
+      if (left <= 0) { await reader.cancel(); return { ok: false, reason: "timeout" }; }
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const r = await Promise.race([reader.read(), new Promise<"t">((res) => { timer = setTimeout(() => res("t"), left); })]);
+      clearTimeout(timer);
+      if (r === "t") { await reader.cancel(); return { ok: false, reason: "timeout" }; }
+      if (r.done) break;
+      const v = r.value;
+      if (total + v.byteLength > max || (pre && total + v.byteLength > pre.length)) { await reader.cancel(); return { ok: false, reason: pre && total + v.byteLength <= max ? "length_mismatch" : "too_large" }; }
+      if (pre) pre.set(v, total); else parts.push(v);
+      total += v.byteLength;
+    }
+  } catch { return { ok: false, reason: "timeout" }; }
+  if (pre) return total === pre.length ? { ok: true, bytes: pre } : { ok: false, reason: "length_mismatch" };
+  if (parts.length === 1) return { ok: true, bytes: parts[0] };
+  const out = new Uint8Array(total); let o = 0;
+  for (const p of parts) { out.set(p, o); o += p.byteLength; }
+  return { ok: true, bytes: out };
+}
 
 const enc = new TextEncoder();
 const hex = (b: ArrayBuffer) => [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, "0")).join("");
@@ -55,17 +120,6 @@ export async function verifySignature(opts: {
   return { ok: true, nonce: h.nonce, bodySha };
 }
 
-/** Exact host + path-prefix allowlist for signed-URL mode; https only, no IP literals, no credentials, no custom port. */
-export function isAllowedStorageUrl(url: string, allowedHost: string | undefined, pathPrefix = "/storage/v1/object/sign/"): boolean {
-  if (!allowedHost) return false;
-  let u: URL;
-  try { u = new URL(url); } catch { return false; }
-  if (u.protocol !== "https:" || u.username || u.password || u.port) return false;
-  if (u.hostname.toLowerCase() !== allowedHost.toLowerCase()) return false;
-  if (/^[\d.]+$/.test(u.hostname) || u.hostname.includes(":")) return false;
-  return u.pathname.startsWith(pathPrefix) && !u.pathname.includes("..");
-}
-
 /** Minimal MP4/ISO-BMFF check: first box is ftyp. */
 export function looksLikeMp4(b: Uint8Array): boolean {
   return b.length >= 1024 && b[4] === 0x66 && b[5] === 0x74 && b[6] === 0x79 && b[7] === 0x70;
@@ -83,7 +137,7 @@ export function deliveryPath(jobId: string, tryNumber: number, sha: string): str
 
 export type ReserveResult =
   | "reserved" | "already_completed" | "in_progress" | "not_found" | "attempt_mismatch"
-  | "conflict_older_attempt" | "conflict_different_bytes" | "conflict_already_delivered" | "conflict_cancelled";
+  | "conflict_older_attempt" | "conflict_different_bytes" | "conflict_already_delivered" | "conflict_cancelled" | "conflict_terminal";
 
 /** Pure mirror of SQL reserve_delivery (the DB function is the atomic authority). */
 export function decideReservation(job: { status: string; try_number: number } | null, tryNumber: number, sha: string,
@@ -94,6 +148,7 @@ export function decideReservation(job: { status: string; try_number: number } | 
   if (existing) {
     if (existing.sha !== sha) return "conflict_different_bytes";
     if (existing.state === "completed") return "already_completed";
+    if (job.status === "delivered" || job.status === "cancelled") return "conflict_terminal";
     return existing.leaseActive ? "in_progress" : "reserved";
   }
   if (job.status === "cancelled") return "conflict_cancelled";
