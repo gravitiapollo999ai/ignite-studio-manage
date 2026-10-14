@@ -660,6 +660,7 @@ export type Database = {
           segment_reason: string | null
           segment_start_seconds: number | null
           source_file_path: string | null
+          source_sha256: string | null
           source_type: string
           source_url: string | null
           status: string
@@ -685,6 +686,7 @@ export type Database = {
           segment_reason?: string | null
           segment_start_seconds?: number | null
           source_file_path?: string | null
+          source_sha256?: string | null
           source_type: string
           source_url?: string | null
           status?: string
@@ -710,6 +712,7 @@ export type Database = {
           segment_reason?: string | null
           segment_start_seconds?: number | null
           source_file_path?: string | null
+          source_sha256?: string | null
           source_type?: string
           source_url?: string | null
           status?: string
@@ -969,25 +972,37 @@ export type Database = {
       source_video_checks: {
         Row: {
           checked_at: string
+          content_sha256: string | null
           duration_ms: number | null
           file_path: string
+          object_etag: string | null
+          object_updated_at: string | null
           ok: boolean
+          size_bytes: number | null
           status: string | null
           user_id: string
         }
         Insert: {
           checked_at?: string
+          content_sha256?: string | null
           duration_ms?: number | null
           file_path: string
+          object_etag?: string | null
+          object_updated_at?: string | null
           ok: boolean
+          size_bytes?: number | null
           status?: string | null
           user_id: string
         }
         Update: {
           checked_at?: string
+          content_sha256?: string | null
           duration_ms?: number | null
           file_path?: string
+          object_etag?: string | null
+          object_updated_at?: string | null
           ok?: boolean
+          size_bytes?: number | null
           status?: string | null
           user_id?: string
         }
@@ -997,6 +1012,7 @@ export type Database = {
         Row: {
           attempts: number
           created_at: string
+          held_reason: string | null
           job_id: string
           last_error: string | null
           next_attempt_at: string
@@ -1008,6 +1024,7 @@ export type Database = {
         Insert: {
           attempts?: number
           created_at?: string
+          held_reason?: string | null
           job_id: string
           last_error?: string | null
           next_attempt_at?: string
@@ -1019,6 +1036,7 @@ export type Database = {
         Update: {
           attempts?: number
           created_at?: string
+          held_reason?: string | null
           job_id?: string
           last_error?: string | null
           next_attempt_at?: string
@@ -1341,7 +1359,21 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      is_segment_restricted: { Args: { _reason: string }; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
+      record_source_check: {
+        Args: {
+          _duration_ms: number
+          _etag: string
+          _path: string
+          _sha: string
+          _size: number
+          _status: string
+          _updated_at: string
+          _user_id: string
+        }
+        Returns: string
+      }
       refund_job: {
         Args: { _credits: number; _job_id: string; _note: string }
         Returns: undefined
@@ -1350,6 +1382,7 @@ export type Database = {
         Args: { _id: string; _note: string }
         Returns: undefined
       }
+      release_held_segment: { Args: { _job_id: string }; Returns: boolean }
       request_revision: {
         Args: { _job_id: string; _reason: string }
         Returns: undefined
@@ -1385,6 +1418,7 @@ export type Database = {
         Args: { _grant: boolean; _role: string; _user_id: string }
         Returns: undefined
       }
+      source_object_identity: { Args: { _path: string }; Returns: Json }
       spoofer_status_rank: { Args: { _s: string }; Returns: number }
     }
     Enums: {

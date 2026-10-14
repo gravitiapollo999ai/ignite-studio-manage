@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import { probeMp4 } from "@/lib/mp4-duration";
 import {
   BODY_READ_TIMEOUT_MS, DELIVER_PATH, MAX_JSON_BYTES, MAX_MULTIPART_VIDEO_BYTES, MAX_URL_VIDEO_BYTES, URL_FETCH_TIMEOUT_MS,
   deliveryPath, hmacHex, httpStatusFor, isAllowedFinalUrl, looksLikeMp4, precheckEnvelope, readBounded, safeFileName,
   sha256Hex, verifySignature, type ReserveResult, type SigHeaders,
+  checkTrimEvidence, finalWithinSegment, parseTrimEvidence, type TrimEvidence,
 } from "@/lib/delivery-contract";
 
 // Authenticated by HMAC-SHA256 (docs/deliver-video-contract.md). Legacy Bearer status callback is untouched.
@@ -54,7 +56,7 @@ export const Route = createFileRoute("/api/public/deliver-video")({
         const { data: fresh } = await admin.rpc("claim_delivery_nonce", { _nonce: sig.nonce });
         if (fresh !== true) { await log({ source: "unknown", outcome: "replay", http: 409 }); return json({ error: "replay" }, 409); }
 
-        let m: z.infer<typeof meta>; let video: Uint8Array | null = null; let urlInfo: z.infer<typeof urlBody> | null = null;
+        let evidence: TrimEvidence | null = null; let m: z.infer<typeof meta>; let video: Uint8Array | null = null; let urlInfo: z.infer<typeof urlBody> | null = null;
         const source = isMultipart ? "multipart" : "signed_url";
         try {
           if (isMultipart) {
@@ -67,8 +69,12 @@ export const Route = createFileRoute("/api/public/deliver-video")({
             if (f.size > MAX_MULTIPART_VIDEO_BYTES) return json({ error: "payload_too_large" }, 413);
             video = new Uint8Array(await f.arrayBuffer());
             m.file_name ??= f.name;
+            const te = form.get("trim_evidence");
+            if (typeof te === "string") { try { evidence = parseTrimEvidence(JSON.parse(te)); } catch { evidence = null; } }
           } else {
-            const p = urlBody.safeParse(JSON.parse(new TextDecoder().decode(raw)));
+            const parsedBody = JSON.parse(new TextDecoder().decode(raw)) as Record<string, unknown>;
+            evidence = parseTrimEvidence(parsedBody?.["trim_evidence"]);
+            const p = urlBody.safeParse(parsedBody);
             if (!p.success) return json({ error: "invalid_fields" }, 400);
             urlInfo = p.data; m = p.data;
             // Receiver id comes from Studio's own trusted mapping, never from the request.
@@ -84,6 +90,17 @@ export const Route = createFileRoute("/api/public/deliver-video")({
         const preSize = video ? video.byteLength : urlInfo!.video_size_bytes;
         if (video && !looksLikeMp4(video)) { await log({ job_id: m.job_id, try_number: m.try_number, sha: preSha, size: preSize, source, outcome: "not_mp4", http: 415 }); return json({ error: "not_mp4" }, 415); }
 
+        // Segment gate (before reserve): restricted jobs need trim evidence bound to source bytes/segment/attempt/final.
+        // A completed delivery for the same bytes is exempt so idempotent replays still get their stable receipt.
+        const { data: ej } = await admin.from("jobs").select("segment_reason, segment_start_seconds, segment_end_seconds, source_sha256, try_number").eq("id", m.job_id).maybeSingle();
+        if (ej) {
+          const { data: prior } = await admin.from("delivery_requests").select("id").eq("job_id", m.job_id).eq("try_number", m.try_number).eq("content_sha256", preSha).eq("state", "completed").maybeSingle();
+          const verdict = prior ? "not_required" : checkTrimEvidence(ej, evidence, { sha256: preSha, size: preSize, tryNumber: m.try_number });
+          if (verdict !== "not_required" && verdict !== "ok") {
+            await log({ job_id: m.job_id, try_number: m.try_number, sha: preSha, size: preSize, source, outcome: verdict, http: 409 });
+            return json({ error: verdict === "evidence_required" ? "segment_evidence_required" : verdict }, 409);
+          }
+        }
         // Reserve BEFORE downloading so conflicts never fetch anything.
         const { data: res, error: resErr } = await admin.rpc("reserve_delivery", { _job_id: m.job_id, _try_number: m.try_number, _sha: preSha, _size: preSize, _actor: actor, _source: source, _claimed_actor: claimed as string });
         if (resErr || !res) { await log({ job_id: m.job_id, try_number: m.try_number, sha: preSha, size: preSize, source, outcome: "reserve_error", http: 500 }); return json({ error: "retry" }, 500); }
@@ -111,6 +128,11 @@ export const Route = createFileRoute("/api/public/deliver-video")({
             video = got.bytes;
             if ((await sha256Hex(video)) !== preSha) return receipt("sha_mismatch", 422);
             if (!looksLikeMp4(video)) return receipt("not_mp4", 415);
+          }
+          if (ej) {
+            const v = video!;
+            const fp = await probeMp4(async (o, l) => v.subarray(o, o + l), v.byteLength);
+            if (fp.kind !== "measured" || !finalWithinSegment(fp.seconds, ej)) return receipt("final_duration_unverified", 422, { final_probe: fp.kind });
           }
           const path = deliveryPath(m.job_id, m.try_number, preSha);
           const up = await admin.storage.from("deliverables").upload(path, video!, { contentType: "video/mp4", upsert: false });

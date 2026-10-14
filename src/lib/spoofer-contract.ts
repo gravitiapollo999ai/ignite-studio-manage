@@ -70,3 +70,13 @@ export function decideCallback(current: string, next: string, jobTry: number, ca
   if (nxt < cur) return "stale";
   return nxt > cur ? "applied" : "noop";
 }
+
+/** Any segment other than a measured-short whole clip restricts production (mirrors SQL is_segment_restricted). */
+export function isSegmentRestricted(reason: string | null | undefined): boolean {
+  return reason != null && reason !== "measured_short";
+}
+
+/** While segment transport is off, restricted jobs are held instead of pushed (no omission bypass). */
+export function shouldHoldForSegment(reason: string | null | undefined, transportOn: boolean): boolean {
+  return isSegmentRestricted(reason) && !transportOn;
+}

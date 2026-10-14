@@ -18,6 +18,7 @@ export function useAiReasonText() {
     model_rejected: t("The AI model isn't available right now.", "El modelo de IA no está disponible ahora."),
     forbidden: t("Not allowed.", "No permitido."),
     not_found: t("Order not found.", "Pedido no encontrado."),
+    missing_inputs: t("This order needs both a source video and a subject reference image before a draft can be written.", "Este pedido necesita un video fuente y una imagen de referencia del sujeto antes de redactar un borrador."),
   }[reason] ?? t("The AI helper is unavailable right now.", "El asistente IA no está disponible ahora."));
 }
 

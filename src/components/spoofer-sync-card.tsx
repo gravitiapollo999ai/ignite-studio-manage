@@ -31,12 +31,26 @@ export function SpooferSyncCard({ jobId }: { jobId: string }) {
     finally { setBusy(false); qc.invalidateQueries({ queryKey: ["spoofer-sync", jobId] }); qc.invalidateQueries({ queryKey: ["spoofer-log", jobId] }); }
   }
 
-  const stateLabel: Record<string, string> = { pending: t("Pending", "Pendiente"), sending: t("Sending", "Enviando"), synced: t("Synced", "Sincronizado"), failed: t("Failed", "Falló") };
+  const stateLabel: Record<string, string> = { pending: t("Pending", "Pendiente"), sending: t("Sending", "Enviando"), synced: t("Synced", "Sincronizado"), failed: t("Failed", "Falló"), held_segment: t("Held — segment", "Retenido — segmento") };
+  async function release() {
+    setBusy(true);
+    try {
+      const { error } = await supabase.rpc("release_held_segment", { _job_id: jobId });
+      if (error) throw error;
+      const res = await sync({ data: { jobId, force: false } });
+      if (res.ok) toast.success(t("Sent to Spoofer", "Enviado a Spoofer"));
+      else if (res.error === "held_segment") toast.error(t("Still held: segment transport is off.", "Sigue retenido: el envío de segmento está apagado."));
+      else toast.error(t("Send failed — will retry", "Falló el envío — se reintentará"));
+    } catch (e) { toast.error(errMsg(e)); }
+    finally { setBusy(false); qc.invalidateQueries({ queryKey: ["spoofer-sync", jobId] }); qc.invalidateQueries({ queryKey: ["spoofer-log", jobId] }); }
+  }
   return (
     <Card className={r?.state === "failed" ? "border-destructive" : undefined}>
       <CardHeader className="flex-row items-center justify-between space-y-0">
         <CardTitle className="flex items-center gap-2">{r?.state === "failed" && <AlertTriangle className="h-4 w-4 text-destructive" />}{t("Spoofer sync", "Sincronización Spoofer")}</CardTitle>
-        {r?.state !== "synced" && (
+        {r?.state === "held_segment" ? (
+          <Button size="sm" variant="outline" onClick={release} disabled={busy}><RefreshCw className="h-4 w-4" />{t("Re-check hold", "Revisar retención")}</Button>
+        ) : r?.state !== "synced" && (
           <Button size="sm" variant="outline" onClick={send} disabled={busy || r?.state === "sending"}>
             {r ? <RefreshCw className="h-4 w-4" /> : <Send className="h-4 w-4" />}{r ? t("Retry now", "Reintentar ahora") : t("Send to Spoofer", "Enviar a Spoofer")}
           </Button>
@@ -49,6 +63,7 @@ export function SpooferSyncCard({ jobId }: { jobId: string }) {
             <span className="text-muted-foreground">{t("Attempts", "Intentos")}</span><span>{r.attempts}</span>
             <span className="text-muted-foreground">{t("Spoofer job", "Pedido Spoofer")}</span><span className="break-all">{r.remote_job_id ?? "—"}</span>
             <span className="text-muted-foreground">{t("Spoofer status", "Estado Spoofer")}</span><span>{r.remote_status ?? "—"}</span>
+            {r.state === "held_segment" && <p className="col-span-2 rounded-md border border-border bg-muted p-2">{t("This order must use only a limited part of the source (segment). It is held and not sent until production confirms it can receive and enforce the segment.", "Este pedido debe usar solo una parte limitada del video fuente (segmento). Queda retenido y no se envía hasta que producción confirme que puede recibir y aplicar el segmento.")}</p>}
             {r.last_error && <><span className="text-muted-foreground">{t("Last error", "Último error")}</span><span className="break-all text-destructive">{r.last_error}</span></>}
           </div>
         )}

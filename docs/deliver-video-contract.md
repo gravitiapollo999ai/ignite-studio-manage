@@ -83,3 +83,6 @@ Spoofer sender changes (applied in the Spoofer editor):
 6. Intake receiver ignores unknown fields; stores `segment_*` when present. Studio sends them only after `SPOOFER_SEGMENT_FIELDS=on`.
 
 Order: Spoofer publish (flag OFF) → Studio publish → signed probe on JOB-000004 → flip Spoofer flag ON → first use on Spoofer fixture dc823c96 only. Rollback = flag OFF.
+
+## Segment-restricted jobs (post-review)
+Jobs whose `segment_reason` is not `measured_short` require `trim_evidence` `{segment_start, segment_end, source_sha256, try_number, final_sha256, final_size_bytes}` in the signed body (JSON) or as a `trim_evidence` JSON form field (multipart). Missing → 409 `segment_evidence_required`; mismatch → 409 `evidence_mismatch`; link sources with no Studio-held bytes → 409 `source_unverifiable`. Every final is probed server-side and must be ≤ segment span + 0.05 s (else 422 `final_duration_unverified`). A completed delivery of the same bytes is exempt so replays keep their receipt. Receipts compare on canonical fields (outcome/received_at excluded).

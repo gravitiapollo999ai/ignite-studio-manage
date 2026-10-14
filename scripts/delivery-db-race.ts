@@ -4,6 +4,7 @@
 import { createClient } from "@supabase/supabase-js";
 
 const FIXTURE = "92372d5b-bb4f-4633-8e18-b3d5a862857b"; // JOB-000004, labelled synthetic
+if (FIXTURE !== "92372d5b-bb4f-4633-8e18-b3d5a862857b") throw new Error("refusing to run: fixture is not the pinned JOB-000004");
 const JOB2 = "c0376b39-d2a8-4021-a802-9f03af337e22";
 const admin = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } });
 let pass = 0, fail = 0;
