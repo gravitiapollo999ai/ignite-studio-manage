@@ -1221,7 +1221,7 @@ export type Database = {
       }
       claim_delivery_nonce: { Args: { _nonce: string }; Returns: boolean }
       claim_email_outbox: {
-        Args: { _limit: number }
+        Args: { _job_id?: string; _limit: number }
         Returns: {
           id: string
           idempotency_key: string
@@ -1274,6 +1274,7 @@ export type Database = {
         }
         Returns: string
       }
+      get_delivery_receipt: { Args: { _request_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
