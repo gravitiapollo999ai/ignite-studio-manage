@@ -24,6 +24,7 @@ import { dispatchJobSync } from "@/lib/spoofer.functions";
 import { verifySourceVideo } from "@/lib/source-video.functions";
 import { isSourceTooLong } from "@/lib/mp4-duration";
 import { LIMIT_30_EN, LIMIT_30_ES } from "@/lib/data";
+import { ImproveBriefButton } from "@/components/ai-helper";
 
 export const Route = createFileRoute("/_authenticated/jobs/new")({
   head: ({ matches }) => ({ meta: [{ title: brandTitle(matches, "New video") }] }),
@@ -245,7 +246,7 @@ function NewJob() {
               <Select value={bizType} onValueChange={setBizType}><SelectTrigger><SelectValue placeholder={t("Choose…", "Elige…")} /></SelectTrigger><SelectContent>{BUSINESS_TYPES.map((b) => <SelectItem key={b} value={b}>{t(b, BUSINESS_TYPES_ES[b] ?? b)}</SelectItem>)}</SelectContent></Select>
               {bizType === "Other" && <Input value={bizOther} onChange={(e) => setBizOther(e.target.value)} placeholder={t("Describe your business", "Describe tu negocio")} maxLength={100} />}
             </div>
-            <div className="space-y-2"><Label htmlFor="notes">{t("Notes", "Notas")}</Label><Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={2000} placeholder={t("Text on screen, offers, tone, what to change from the original…", "Texto en pantalla, ofertas, tono, qué cambiar del original…")} /></div>
+            <div className="space-y-2"><Label htmlFor="notes">{t("Notes", "Notas")}</Label><Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={2000} placeholder={t("Text on screen, offers, tone, what to change from the original…", "Texto en pantalla, ofertas, tono, qué cambiar del original…")} /><ImproveBriefButton draft={notes} businessType={bizType} subjectType={subjectType} onResult={(x) => setNotes(x.slice(0, 2000))} /></div>
           </>
         )}
 

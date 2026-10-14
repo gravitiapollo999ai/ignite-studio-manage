@@ -19,6 +19,7 @@ import { brandTitle, errMsg, signedUrl } from "@/lib/data";
 import { ALL_STATUSES, SOURCE_LABELS, STATUS_LABELS, STATUS_LABELS_ES, formatMmSs, type SourceType } from "@/lib/pricing";
 import { useI18n } from "@/lib/i18n";
 import { SpooferSyncCard } from "@/components/spoofer-sync-card";
+import { DraftPromptButton } from "@/components/ai-helper";
 
 export const Route = createFileRoute("/_authenticated/admin/jobs/$jobId")({
   head: ({ matches }) => ({ meta: [{ title: brandTitle(matches, "Admin · Job") }] }),
@@ -170,7 +171,7 @@ function AdminJob() {
           <Card className="border-warning/60">
             <CardHeader><CardTitle className="flex items-center gap-2"><Lock className="h-4 w-4" />{t("Internal – never shown to client", "Interno – nunca visible para el cliente")}</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-              <div className="space-y-2"><Label>{t("Internal prompt", "Prompt interno")}</Label><Textarea rows={10} value={prompt} onChange={(e) => setPrompt(e.target.value)} className="font-mono text-sm" /></div>
+              <div className="space-y-2"><Label>{t("Internal prompt", "Prompt interno")}</Label><Textarea rows={10} value={prompt} onChange={(e) => setPrompt(e.target.value)} className="font-mono text-sm" /><DraftPromptButton jobId={j.id} onResult={(x) => setPrompt((p) => (p ? `${p}\n\n${x}` : x))} /></div>
               <div className="space-y-2"><Label>{t("Internal notes", "Notas internas")}</Label><Textarea rows={3} value={inotes} onChange={(e) => setInotes(e.target.value)} /></div>
               <Button onClick={saveInternal} disabled={busy === "internal"}>{busy === "internal" ? t("Saving…", "Guardando…") : t("Save internal", "Guardar interno")}</Button>
             </CardContent>
