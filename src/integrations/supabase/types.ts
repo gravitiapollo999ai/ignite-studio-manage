@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_helper_log: {
+        Row: {
+          created_at: string
+          id: string
+          input_chars: number | null
+          input_sha256: string | null
+          job_id: string | null
+          kind: string
+          latency_ms: number | null
+          model: string
+          outcome: string
+          output_chars: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          input_chars?: number | null
+          input_sha256?: string | null
+          job_id?: string | null
+          kind: string
+          latency_ms?: number | null
+          model: string
+          outcome: string
+          output_chars?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          input_chars?: number | null
+          input_sha256?: string | null
+          job_id?: string | null
+          kind?: string
+          latency_ms?: number | null
+          model?: string
+          outcome?: string
+          output_chars?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_helper_usage: {
+        Row: {
+          count: number
+          day: string
+          kind: string
+          user_id: string
+        }
+        Insert: {
+          count?: number
+          day?: string
+          kind: string
+          user_id: string
+        }
+        Update: {
+          count?: number
+          day?: string
+          kind?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       business_profiles: {
         Row: {
           brand_colors: string | null
@@ -1160,6 +1223,10 @@ export type Database = {
           _size: number
         }
         Returns: string
+      }
+      consume_ai_quota: {
+        Args: { _kind: string; _limit: number; _user_id: string }
+        Returns: boolean
       }
       create_job: {
         Args: {
