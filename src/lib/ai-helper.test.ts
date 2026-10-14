@@ -7,7 +7,7 @@ const brief = { brief_en: "A clear brief for the subject.", brief_es: "Un brief 
 describe("DeepSeek helper", () => {
   it("fails closed without a key and makes no request", async () => {
     const f = vi.fn();
-    expect(await improveBrief({ draft: "hello there" }, f as never, undefined)).toEqual({ ok: false, reason: "not_configured" });
+    expect(await improveBrief({ draft: "hello there" }, f as never, "")).toEqual({ ok: false, reason: "not_configured" });
     expect(f).not.toHaveBeenCalled();
   });
   it("sends deepseek-flash, max_tokens 4000, thinking disabled, JSON output", async () => {
