@@ -63,6 +63,6 @@ export const aiDraftPrompt = createServerFn({ method: "POST" })
       input_chars: input.brief.length, output_chars: r.ok ? r.data.prompt.length : null, input_sha256: await sha(input.brief), latency_ms: Date.now() - t0,
     });
     if (!r.ok) return { ok: false as const, reason: r.reason };
-    const text = `[DRAFT — needs captain gate · ${DEEPSEEK_MODEL}]\n${r.data.prompt}\n\nNegative: ${r.data.negative_prompt}\nShots:\n${r.data.shot_notes.map((s) => `- ${s}`).join("\n")}\nDuration: ${r.data.duration_seconds}s\nInputs: source video + subject reference image (paired).`;
+    const text = `[DRAFT — needs captain gate · ${DEEPSEEK_MODEL}]\n${r.data.prompt}\n\nNegative: ${r.data.negative_prompt}\nShots:\n${(r.data.shot_notes ?? []).map((s) => `- ${s}`).join("\n")}\nDuration: ${r.data.duration_seconds}s\nInputs: source video + subject reference image (paired).`;
     return { ok: true as const, draft: text };
   });

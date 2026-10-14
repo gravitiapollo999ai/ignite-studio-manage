@@ -94,6 +94,7 @@ function JobDetail() {
           <Row k={t("Source", "Fuente")} v={sourceLabels[j.source_type as SourceType]} />
           {j.source_url && <Row k={t("Link", "Enlace")} v={<a href={j.source_url} target="_blank" rel="noreferrer" className="break-all text-primary">{j.source_url}</a>} />}
           {(j.clip_start != null || j.clip_end != null) && <Row k={t("Clip", "Clip")} v={`${formatMmSs(j.clip_start) || "0:00"} – ${formatMmSs(j.clip_end) || t("end", "fin")}`} />}
+          {j.segment_reason?.startsWith("auto_first_30") && <Row k={t("Segment used", "Segmento usado")} v={t("First 30 seconds only", "Solo los primeros 30 segundos")} />}
           <Row k={t("Length", "Duración")} v={`${j.target_duration_seconds}s · 1080p`} />
           <Row k={t("Subject", "Sujeto")} v={`${j.subject_name} (${j.subject_type})`} />
           <Row k={t("Business type", "Tipo de negocio")} v={j.business_type ?? "—"} />

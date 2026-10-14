@@ -70,12 +70,12 @@ async function call<T>(system: string, user: string, schema: z.ZodType<T>, fetch
   return { ok: false, reason: "provider_error" };
 }
 
-export function improveBrief(input: { draft: string; business_type?: string | null; subject_type?: string | null }, fetchImpl: typeof fetch = fetch, key = process.env["DEEPSEEK_API_KEY"]) {
+export function improveBrief(input: { draft: string; business_type?: string | null | undefined; subject_type?: string | null | undefined }, fetchImpl: typeof fetch = fetch, key = process.env["DEEPSEEK_API_KEY"]) {
   return call(BRIEF_SYSTEM, wrap(input), briefOut, fetchImpl, key);
 }
 
 export function draftSeedancePrompt(input: {
-  brief: string; subject_name: string; subject_type: string; business_type?: string | null;
+  brief: string; subject_name: string; subject_type: string; business_type?: string | null | undefined;
   segment_start?: number | null; segment_end?: number | null; source_type: string; has_source: boolean; has_reference: boolean;
 }, fetchImpl: typeof fetch = fetch, key = process.env["DEEPSEEK_API_KEY"]) {
   return call(PROMPT_SYSTEM, wrap(input), promptOut, fetchImpl, key);
