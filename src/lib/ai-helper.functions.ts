@@ -8,7 +8,8 @@ export const aiHelperStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async () => ({ configured: !!process.env["DEEPSEEK_API_KEY"] }));
 
-async function safeLog(admin: { from: (t: "ai_helper_log") => { insert: (r: never) => PromiseLike<{ error: unknown }> } }, row: Record<string, unknown>) {
+type Admin = (typeof import("@/integrations/supabase/client.server"))["supabaseAdmin"];
+async function safeLog(admin: Admin, row: Record<string, unknown>) {
   try { const { error } = await admin.from("ai_helper_log").insert(row as never); if (error) console.warn("[ai-helper] usage log insert failed"); }
   catch { console.warn("[ai-helper] usage log insert failed"); }
 }
