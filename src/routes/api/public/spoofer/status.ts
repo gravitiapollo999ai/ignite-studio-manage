@@ -38,6 +38,7 @@ export const Route = createFileRoute("/api/public/spoofer/status")({
         const pre = decideCallback(job.status, status, job.try_number, d.try_number);
         if (pre === "stale" || pre === "terminal" || pre === "attempt_mismatch") {
           const r = await admin.rpc("apply_spoofer_callback", { _job_id: job.id, _event_id: d.event_id, _status: status, _message: d.message ?? "", _try_number: d.try_number ?? null as unknown as number, _file_path: null as unknown as string, _file_name: null as unknown as string, _remote_job_id: d.spoofer_job_id ?? null as unknown as string });
+          if (r.data === "duplicate") return json({ ok: true, duplicate: true });
           return json({ ok: true, ignored: r.data ?? pre });
         }
 
