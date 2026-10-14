@@ -19,7 +19,7 @@ describe("deliver-video HMAC", () => {
   it("rejects stale timestamp beyond 300s", async () => { expect(await v(await signed(body, now - 301))).toEqual({ ok: false, reason: "stale" }); });
   it("rejects tampered body", async () => { const h = await signed(body); expect(await v(h, new TextEncoder().encode('{"job_id":"y"}'))).toEqual({ ok: false, reason: "body_hash" }); });
   it("rejects wrong secret", async () => { expect(await v(await signed(body), body, "other")).toEqual({ ok: false, reason: "bad_signature" }); });
-  it("fails closed without a configured secret", async () => { expect(await v(await signed(body), body, undefined)).toEqual({ ok: false, reason: "no_secret" }); });
+  it("fails closed without a configured secret", async () => { expect(await v(await signed(body), body, "")).toEqual({ ok: false, reason: "no_secret" }); });
 });
 
 describe("signed URL allowlist", () => {
