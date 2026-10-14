@@ -29,6 +29,13 @@
       "when": 1791943238425,
       "tag": "0003_spoofer_monotonic_callbacks",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791943631100,
+      "tag": "0004_spoofer_callback_unversioned_attempt1_only",
+      "breakpoints": true
     }
   ]
 }

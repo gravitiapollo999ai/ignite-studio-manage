@@ -7,8 +7,8 @@ const body = z.object({
   studio_job_id: z.string().uuid(),
   status: z.string().min(1).max(40),
   message: z.string().max(1000).optional(),
-  spoofer_job_id: z.string().max(200).nullish(),
-  // Optional attempt the callback belongs to (from the intake payload's try_number). Absent = current attempt.
+  spoofer_job_id: z.string().min(1).max(200).optional(),
+  // Attempt the callback belongs to (intake payload's try_number). Absent is accepted only while the job is on attempt 1.
   try_number: z.number().int().min(1).max(100).optional(),
   final_video: z.object({ url: z.string().url().max(4000), file_name: z.string().min(1).max(200) }).optional(),
 });
