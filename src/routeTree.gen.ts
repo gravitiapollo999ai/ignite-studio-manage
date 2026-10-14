@@ -29,6 +29,7 @@ import { Route as AuthenticatedAdminTeamRouteImport } from './routes/_authentica
 import { Route as AuthenticatedJobsIndexRouteImport } from './routes/_authenticated/jobs.index'
 import { Route as AuthenticatedJobsJobIdRouteImport } from './routes/_authenticated/jobs.$jobId'
 import { Route as AuthenticatedJobsNewRouteImport } from './routes/_authenticated/jobs.new'
+import { Route as ApiPublicDeliverVideoRouteImport } from './routes/api/public/deliver-video'
 import { Route as ApiPublicJobsFeedRouteImport } from './routes/api/public/jobs-feed'
 import { Route as AuthenticatedAdminClientsIndexRouteImport } from './routes/_authenticated/admin/clients.index'
 import { Route as AuthenticatedAdminClientsClientIdRouteImport } from './routes/_authenticated/admin/clients.$clientId'
@@ -140,6 +141,11 @@ const AuthenticatedJobsNewRoute = AuthenticatedJobsNewRouteImport.update({
   path: '/jobs/new',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicDeliverVideoRoute = ApiPublicDeliverVideoRouteImport.update({
+  id: '/api/public/deliver-video',
+  path: '/api/public/deliver-video',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicJobsFeedRoute = ApiPublicJobsFeedRouteImport.update({
   id: '/api/public/jobs-feed',
   path: '/api/public/jobs-feed',
@@ -198,6 +204,7 @@ export interface FileRoutesByFullPath {
   '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/jobs/new': typeof AuthenticatedJobsNewRoute
+  '/api/public/deliver-video': typeof ApiPublicDeliverVideoRoute
   '/api/public/jobs-feed': typeof ApiPublicJobsFeedRouteWithChildren
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/jobs/': typeof AuthenticatedJobsIndexRoute
@@ -225,6 +232,7 @@ export interface FileRoutesByTo {
   '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/jobs/new': typeof AuthenticatedJobsNewRoute
+  '/api/public/deliver-video': typeof ApiPublicDeliverVideoRoute
   '/api/public/jobs-feed': typeof ApiPublicJobsFeedRouteWithChildren
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/jobs': typeof AuthenticatedJobsIndexRoute
@@ -255,6 +263,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/team': typeof AuthenticatedAdminTeamRoute
   '/_authenticated/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/_authenticated/jobs/new': typeof AuthenticatedJobsNewRoute
+  '/api/public/deliver-video': typeof ApiPublicDeliverVideoRoute
   '/api/public/jobs-feed': typeof ApiPublicJobsFeedRouteWithChildren
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/jobs/': typeof AuthenticatedJobsIndexRoute
@@ -285,6 +294,7 @@ export interface FileRouteTypes {
     | '/admin/team'
     | '/jobs/$jobId'
     | '/jobs/new'
+    | '/api/public/deliver-video'
     | '/api/public/jobs-feed'
     | '/admin/'
     | '/jobs/'
@@ -312,6 +322,7 @@ export interface FileRouteTypes {
     | '/admin/team'
     | '/jobs/$jobId'
     | '/jobs/new'
+    | '/api/public/deliver-video'
     | '/api/public/jobs-feed'
     | '/admin'
     | '/jobs'
@@ -341,6 +352,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/team'
     | '/_authenticated/jobs/$jobId'
     | '/_authenticated/jobs/new'
+    | '/api/public/deliver-video'
     | '/api/public/jobs-feed'
     | '/_authenticated/admin/'
     | '/_authenticated/jobs/'
@@ -358,6 +370,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiPublicDeliverVideoRoute: typeof ApiPublicDeliverVideoRoute
   ApiPublicJobsFeedRoute: typeof ApiPublicJobsFeedRouteWithChildren
   ApiPublicSpooferStatusRoute: typeof ApiPublicSpooferStatusRoute
 }
@@ -504,6 +517,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedJobsNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/deliver-video': {
+      id: '/api/public/deliver-video'
+      path: '/api/public/deliver-video'
+      fullPath: '/api/public/deliver-video'
+      preLoaderRoute: typeof ApiPublicDeliverVideoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/jobs-feed': {
       id: '/api/public/jobs-feed'
       path: '/api/public/jobs-feed'
@@ -634,6 +654,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ApiPublicDeliverVideoRoute: ApiPublicDeliverVideoRoute,
   ApiPublicJobsFeedRoute: ApiPublicJobsFeedRouteWithChildren,
   ApiPublicSpooferStatusRoute: ApiPublicSpooferStatusRoute,
 }
