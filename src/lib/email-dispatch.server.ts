@@ -6,7 +6,7 @@ import type { Database } from "@/integrations/supabase/types";
 
 type Admin = SupabaseClient<Database>;
 export type SendResult = { sent: true } | { sent: false; reason: "blocked" | "suppressed" | "failed"; error?: string };
-export type Sender = (msg: { to: string; idempotencyKey: string; lang: "en" | "es"; name?: string; jobCode: string; jobUrl: string; brand: string }) => Promise<SendResult>;
+export type Sender = (msg: { to: string; idempotencyKey: string; lang: "en" | "es"; name?: string | undefined; jobCode: string; jobUrl: string; brand: string }) => Promise<SendResult>;
 
 /**
  * Managed app-email sending needs a verified sender domain plus the scaffolded send helper.
