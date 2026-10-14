@@ -57,7 +57,7 @@ export const Route = createFileRoute("/api/public/deliver-video")({
         const { supabaseAdmin: admin } = await import("@/integrations/supabase/client.server");
         const actor = "spoofer:hmac-v1"; // the only authenticated identity: holder of the shared secret
         const claimed = request.headers.get("x-studio-actor")?.slice(0, 120) ?? null; // recorded as unverified only
-        const log = (o: { job_id?: string; try_number?: number; sha?: string; size?: number; source: string; outcome: string; http: number }) =>
+        const log = (o: { job_id?: string; try_number?: number; sha?: string; size?: number | undefined; source: string; outcome: string; http: number }) =>
           admin.from("delivery_log").insert({ job_id: o.job_id ?? null, try_number: o.try_number ?? null, content_sha256: o.sha ?? null, size_bytes: o.size ?? null, actor, source: o.source, outcome: o.outcome, http_status: o.http });
 
         const { data: fresh } = await admin.rpc("claim_delivery_nonce", { _nonce: sig.nonce });
@@ -69,7 +69,7 @@ export const Route = createFileRoute("/api/public/deliver-video")({
         try {
           if (isMultipart) {
             source = "multipart";
-            const form = await new Response(raw, { headers: { "content-type": ctype } }).formData();
+            const form = await new Response(raw as BodyInit, { headers: { "content-type": ctype } }).formData();
             const p = meta.safeParse({ job_id: form.get("job_id"), try_number: form.get("try_number"), file_name: form.get("file_name") ?? undefined });
             if (!p.success) return json({ error: "invalid_fields" }, 400);
             m = p.data;
