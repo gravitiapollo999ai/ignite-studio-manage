@@ -43,6 +43,13 @@
       "when": 1791944287864,
       "tag": "0005_source_video_duration_checks",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791951627002,
+      "tag": "0006_deliver_video_endpoint",
+      "breakpoints": true
     }
   ]
 }
