@@ -71,3 +71,23 @@ describe("exact ranged reads", () => {
   it("rejects mismatched content-range", async () => { await expect(exactRange("u", 0, 16, 100, f(206, "bytes 0-15/999", 16))).rejects.toThrow(); });
   it("rejects short bodies", async () => { await expect(exactRange("u", 0, 16, 100, f(206, "bytes 0-15/100", 10))).rejects.toThrow(); });
 });
+
+import { classifySource, isSourceTooLong as tooLong } from "./mp4-duration";
+describe("30s source policy", () => {
+  const ftyp = new Uint8Array([0, 0, 0, 0x20, 0x66, 0x74, 0x79, 0x70, 0, 0, 0, 0, 0, 0, 0, 0]);
+  it("accepts 30.00 and 30.05, blocks 30.06 and 31", () => {
+    expect(classifySource(ftyp, 30).status).toBe("measured_ok");
+    expect(classifySource(ftyp, 30.05).status).toBe("measured_ok");
+    expect(classifySource(ftyp, 30.06).status).toBe("measured_too_long");
+    expect(classifySource(ftyp, 31).status).toBe("measured_too_long");
+    expect(tooLong(30.05)).toBe(false);
+  });
+  it("valid container with unreadable length is unknown_duration, never a fabricated pass", () => {
+    expect(classifySource(ftyp, null).status).toBe("unknown_duration");
+    expect(classifySource(ftyp, Number.NaN).status).toBe("unknown_duration");
+  });
+  it("non-MP4/MOV media is rejected", () => {
+    expect(classifySource(new Uint8Array(16), 10).status).toBe("rejected_media");
+    expect(classifySource(new Uint8Array(4), null).status).toBe("rejected_media");
+  });
+});

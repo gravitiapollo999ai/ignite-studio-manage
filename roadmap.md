@@ -16,3 +16,14 @@
 # Spoofer sync
 - [x] Studio side: queue, push, retries, inbound status + final video, logs, admin flags
 - [ ] Live sync — blocked: SPOOFER_SYNC_SECRET not set + Spoofer receiver not built (contract in docs)
+
+# Captain plan 1791955207 (consolidated)
+- [x] (a) DeepSeek brief helper + Seedance prompt writer (fail-closed)
+- [ ] (a) live DeepSeek check — blocked: DEEPSEEK_API_KEY human entry
+- [x] (b) inline player (verify only, after publish)
+- [x] (c) 30s policy: unknown length → first 30 s segment; segment through feed/intake
+- [x] (d) delivery receipt/email bounds; fixture-only DB script
+- [x] (e) ETA label + admin overrides
+- [ ] Spoofer sender/flag/receiver changes — blocked: applied in Spoofer editor
+- [ ] Coordinated publish + live checks — blocked: captain release gate
+- [ ] Email sending — on hold: owned email domain

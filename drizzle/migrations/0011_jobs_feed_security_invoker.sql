@@ -1,0 +1,1 @@
+ALTER VIEW public.jobs_feed SET (security_invoker = true);

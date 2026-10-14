@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Empty, StatusBadge, useSettings } from "@/components/site";
 import { JobTimeline } from "@/components/job-timeline";
 import { PrivateVideoPlayer } from "@/components/private-video-player";
+import { JobEta } from "@/components/job-eta";
 import { brandTitle, errMsg, signedUrl } from "@/lib/data";
 import { useI18n } from "@/lib/i18n";
 import { SOURCE_LABELS, formatMmSs, type SourceType } from "@/lib/pricing";
@@ -74,6 +75,7 @@ function JobDetail() {
         <StatusBadge status={j.status} />
       </div>
       <Card><CardHeader><CardTitle>{t("Progress", "Progreso")}</CardTitle></CardHeader><CardContent>
+        <div className="mb-4"><JobEta jobId={j.id} /></div>
         <JobTimeline status={j.status} tryNumber={j.try_number} maxTries={Math.min(2, s.max_tries_per_video)} events={events.data ?? []} />
       </CardContent></Card>
       <Card>
@@ -94,6 +96,7 @@ function JobDetail() {
           <Row k={t("Source", "Fuente")} v={sourceLabels[j.source_type as SourceType]} />
           {j.source_url && <Row k={t("Link", "Enlace")} v={<a href={j.source_url} target="_blank" rel="noreferrer" className="break-all text-primary">{j.source_url}</a>} />}
           {(j.clip_start != null || j.clip_end != null) && <Row k={t("Clip", "Clip")} v={`${formatMmSs(j.clip_start) || "0:00"} – ${formatMmSs(j.clip_end) || t("end", "fin")}`} />}
+          {j.segment_reason?.startsWith("auto_first_30") && <Row k={t("Segment used", "Segmento usado")} v={t("First 30 seconds only", "Solo los primeros 30 segundos")} />}
           <Row k={t("Length", "Duración")} v={`${j.target_duration_seconds}s · 1080p`} />
           <Row k={t("Subject", "Sujeto")} v={`${j.subject_name} (${j.subject_type})`} />
           <Row k={t("Business type", "Tipo de negocio")} v={j.business_type ?? "—"} />

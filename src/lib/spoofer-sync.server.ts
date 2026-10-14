@@ -38,6 +38,9 @@ export async function buildPayload(admin: Admin, jobId: string) {
       source_type: j.source_type, source_url: j.source_url, clip_start: j.clip_start, clip_end: j.clip_end,
       target_duration_seconds: j.target_duration_seconds, resolution: "1080p",
       subject_type: j.subject_type, subject_name: j.subject_name, business_type: j.business_type, notes: j.notes,
+      // Enforced production segment (additive; receivers that ignore unknown fields are unaffected). Only sent when the
+      // Spoofer receiver is confirmed tolerant: SPOOFER_SEGMENT_FIELDS=on (non-secret config).
+      ...(process.env["SPOOFER_SEGMENT_FIELDS"] === "on" ? { segment_start_seconds: j.segment_start_seconds, segment_end_seconds: j.segment_end_seconds, segment_reason: j.segment_reason } : {}),
     },
     files, // 24h signed URLs — receiver copies them into Spoofer storage
     created_at: j.created_at,

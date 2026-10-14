@@ -20,8 +20,8 @@ export function emailSendingConfigured(): boolean {
   return getSender() !== null;
 }
 
-export async function dispatchEmails(admin: Admin, limit = 5, sender: Sender | null = getSender()) {
-  const { data: rows, error } = await admin.rpc("claim_email_outbox", { _limit: limit });
+export async function dispatchEmails(admin: Admin, limit = 5, sender: Sender | null = getSender(), jobId?: string) {
+  const { data: rows, error } = await admin.rpc("claim_email_outbox", { _limit: limit, ...(jobId ? { _job_id: jobId } : {}) });
   if (error) throw new Error("claim failed");
   const out: Array<{ id: string; result: string }> = [];
   for (const row of rows ?? []) {
@@ -45,8 +45,9 @@ export async function dispatchEmails(admin: Admin, limit = 5, sender: Sender | n
       } catch { result = { sent: false, reason: "failed", error: "send_error" }; }
     }
     const status = result.sent ? "sent" : result.reason;
-    await admin.rpc("finish_email_outbox", { _id: row.id, _lease_token: row.lease_token, _result: status, _error: result.sent ? (null as unknown as string) : (result.error ?? status) });
-    out.push({ id: row.id, result: status });
+    const fin = await admin.rpc("finish_email_outbox", { _id: row.id, _lease_token: row.lease_token, _result: status, _error: result.sent ? (null as unknown as string) : (result.error ?? status) });
+    // A failed/lost finish is never reported as success.
+    out.push({ id: row.id, result: fin.error || fin.data !== "ok" ? `finish_${fin.error ? "error" : String(fin.data)}` : status });
   }
   return out;
 }

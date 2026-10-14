@@ -24,6 +24,7 @@ import { dispatchJobSync } from "@/lib/spoofer.functions";
 import { verifySourceVideo } from "@/lib/source-video.functions";
 import { isSourceTooLong } from "@/lib/mp4-duration";
 import { LIMIT_30_EN, LIMIT_30_ES } from "@/lib/data";
+import { ImproveBriefButton } from "@/components/ai-helper";
 
 export const Route = createFileRoute("/_authenticated/jobs/new")({
   head: ({ matches }) => ({ meta: [{ title: brandTitle(matches, "New video") }] }),
@@ -55,6 +56,7 @@ function NewJob() {
   const dispatchSync = useServerFn(dispatchJobSync);
   const verifyVideo = useServerFn(verifySourceVideo);
   const limitMsg = t(LIMIT_30_EN, LIMIT_30_ES);
+  const FIRST30 = t("We couldn't read this video's length, so we'll use only the first 30 seconds.", "No pudimos leer la duración de este video, así que usaremos solo los primeros 30 segundos.");
   const bal = useQuery(balanceQuery(user.id));
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -151,8 +153,11 @@ function NewJob() {
         const v = await verifyVideo({ data: { path: sourcePath } });
         if (!v.ok) {
           setBusy(false); setProgress(null);
-          return toast.error(v.reason === "too_long" ? limitMsg : t("We couldn't read your video's length. Please upload a standard MP4 again.", "No pudimos leer la duración de tu video. Vuelve a subir un MP4 estándar."));
+          return toast.error(v.reason === "too_long" ? limitMsg
+            : v.reason === "rejected_media" ? t("This file isn't a valid MP4 video. Please upload a standard MP4.", "Este archivo no es un video MP4 válido. Sube un MP4 estándar.")
+            : t("We couldn't check your video right now. Please try again.", "No pudimos revisar tu video ahora. Inténtalo de nuevo."));
         }
+        if (v.unknown) toast.info(FIRST30);
       }
       setProgress(t("Uploading reference image…", "Subiendo imagen de referencia…"));
       const ext = image!.name.split(".").pop()?.toLowerCase() || "jpg";
@@ -201,6 +206,7 @@ function NewJob() {
         {step === 0 && (
           <Tabs value={mode} onValueChange={(v) => setMode(v as "link" | "upload")}>
             <p className="mb-3 rounded-md border bg-muted/50 p-3 text-sm text-muted-foreground">{limitMsg}</p>
+            {mode === "link" && platform && platform !== "youtube" && <p className="mb-3 rounded-md border bg-muted/50 p-3 text-sm text-muted-foreground">{t("We can't check the length of this link, so we'll use only the first 30 seconds.", "No podemos verificar la duración de este enlace, así que usaremos solo los primeros 30 segundos.")}</p>}
             <TabsList className="grid w-full grid-cols-2"><TabsTrigger value="link"><Link2 className="h-4 w-4" />{t("Paste link", "Pegar enlace")}</TabsTrigger><TabsTrigger value="upload"><Upload className="h-4 w-4" />{t("Upload MP4", "Subir MP4")}</TabsTrigger></TabsList>
             <TabsContent value="link" className="space-y-4 pt-4">
               <div className="space-y-2"><Label htmlFor="url">{t("Video link", "Enlace del video")}</Label><Input id="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://www.tiktok.com/@…" />
@@ -245,7 +251,7 @@ function NewJob() {
               <Select value={bizType} onValueChange={setBizType}><SelectTrigger><SelectValue placeholder={t("Choose…", "Elige…")} /></SelectTrigger><SelectContent>{BUSINESS_TYPES.map((b) => <SelectItem key={b} value={b}>{t(b, BUSINESS_TYPES_ES[b] ?? b)}</SelectItem>)}</SelectContent></Select>
               {bizType === "Other" && <Input value={bizOther} onChange={(e) => setBizOther(e.target.value)} placeholder={t("Describe your business", "Describe tu negocio")} maxLength={100} />}
             </div>
-            <div className="space-y-2"><Label htmlFor="notes">{t("Notes", "Notas")}</Label><Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={2000} placeholder={t("Text on screen, offers, tone, what to change from the original…", "Texto en pantalla, ofertas, tono, qué cambiar del original…")} /></div>
+            <div className="space-y-2"><Label htmlFor="notes">{t("Notes", "Notas")}</Label><Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={2000} placeholder={t("Text on screen, offers, tone, what to change from the original…", "Texto en pantalla, ofertas, tono, qué cambiar del original…")} /><ImproveBriefButton draft={notes} businessType={bizType} subjectType={subjectType} onResult={(x) => setNotes(x.slice(0, 2000))} /></div>
           </>
         )}
 

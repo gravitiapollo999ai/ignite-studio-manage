@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_helper_log: {
+        Row: {
+          created_at: string
+          id: string
+          input_chars: number | null
+          input_sha256: string | null
+          job_id: string | null
+          kind: string
+          latency_ms: number | null
+          model: string
+          outcome: string
+          output_chars: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          input_chars?: number | null
+          input_sha256?: string | null
+          job_id?: string | null
+          kind: string
+          latency_ms?: number | null
+          model: string
+          outcome: string
+          output_chars?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          input_chars?: number | null
+          input_sha256?: string | null
+          job_id?: string | null
+          kind?: string
+          latency_ms?: number | null
+          model?: string
+          outcome?: string
+          output_chars?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_helper_usage: {
+        Row: {
+          count: number
+          day: string
+          kind: string
+          user_id: string
+        }
+        Insert: {
+          count?: number
+          day?: string
+          kind: string
+          user_id: string
+        }
+        Update: {
+          count?: number
+          day?: string
+          kind?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       business_profiles: {
         Row: {
           brand_colors: string | null
@@ -458,6 +521,51 @@ export type Database = {
           },
         ]
       }
+      job_eta_overrides: {
+        Row: {
+          generating_minutes: number | null
+          job_id: string
+          qa_minutes: number | null
+          ready_at: string | null
+          review_minutes: number | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          generating_minutes?: number | null
+          job_id: string
+          qa_minutes?: number | null
+          ready_at?: string | null
+          review_minutes?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          generating_minutes?: number | null
+          job_id?: string
+          qa_minutes?: number | null
+          ready_at?: string | null
+          review_minutes?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_eta_overrides_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: true
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_eta_overrides_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: true
+            referencedRelation: "jobs_feed"
+            referencedColumns: ["job_id"]
+          },
+        ]
+      }
       job_events: {
         Row: {
           created_at: string
@@ -548,6 +656,9 @@ export type Database = {
           id: string
           notes: string | null
           reference_image_path: string | null
+          segment_end_seconds: number | null
+          segment_reason: string | null
+          segment_start_seconds: number | null
           source_file_path: string | null
           source_type: string
           source_url: string | null
@@ -570,6 +681,9 @@ export type Database = {
           id?: string
           notes?: string | null
           reference_image_path?: string | null
+          segment_end_seconds?: number | null
+          segment_reason?: string | null
+          segment_start_seconds?: number | null
           source_file_path?: string | null
           source_type: string
           source_url?: string | null
@@ -592,6 +706,9 @@ export type Database = {
           id?: string
           notes?: string | null
           reference_image_path?: string | null
+          segment_end_seconds?: number | null
+          segment_reason?: string | null
+          segment_start_seconds?: number | null
           source_file_path?: string | null
           source_type?: string
           source_url?: string | null
@@ -674,6 +791,10 @@ export type Database = {
           brand_name: string
           credits_per_video: number
           default_turnaround_hours: number
+          eta_generating_minutes: number
+          eta_qa_minutes: number
+          eta_queue_minutes: number
+          eta_review_minutes: number
           feed_last_success_at: string | null
           hf_credits_per_30s: number
           hf_plus_credits: number
@@ -693,6 +814,10 @@ export type Database = {
           brand_name?: string
           credits_per_video?: number
           default_turnaround_hours?: number
+          eta_generating_minutes?: number
+          eta_qa_minutes?: number
+          eta_queue_minutes?: number
+          eta_review_minutes?: number
           feed_last_success_at?: string | null
           hf_credits_per_30s?: number
           hf_plus_credits?: number
@@ -712,6 +837,10 @@ export type Database = {
           brand_name?: string
           credits_per_video?: number
           default_turnaround_hours?: number
+          eta_generating_minutes?: number
+          eta_qa_minutes?: number
+          eta_queue_minutes?: number
+          eta_review_minutes?: number
           feed_last_success_at?: string | null
           hf_credits_per_30s?: number
           hf_plus_credits?: number
@@ -843,6 +972,7 @@ export type Database = {
           duration_ms: number | null
           file_path: string
           ok: boolean
+          status: string | null
           user_id: string
         }
         Insert: {
@@ -850,6 +980,7 @@ export type Database = {
           duration_ms?: number | null
           file_path: string
           ok: boolean
+          status?: string | null
           user_id: string
         }
         Update: {
@@ -857,6 +988,7 @@ export type Database = {
           duration_ms?: number | null
           file_path?: string
           ok?: boolean
+          status?: string | null
           user_id?: string
         }
         Relationships: []
@@ -1058,6 +1190,9 @@ export type Database = {
           job_id: string | null
           notes: string | null
           reference_image_path: string | null
+          segment_end_seconds: number | null
+          segment_reason: string | null
+          segment_start_seconds: number | null
           source_file_path: string | null
           source_type: string | null
           source_url: string | null
@@ -1077,6 +1212,9 @@ export type Database = {
           job_id?: string | null
           notes?: string | null
           reference_image_path?: string | null
+          segment_end_seconds?: number | null
+          segment_reason?: string | null
+          segment_start_seconds?: number | null
           source_file_path?: string | null
           source_type?: string | null
           source_url?: string | null
@@ -1096,6 +1234,9 @@ export type Database = {
           job_id?: string | null
           notes?: string | null
           reference_image_path?: string | null
+          segment_end_seconds?: number | null
+          segment_reason?: string | null
+          segment_start_seconds?: number | null
           source_file_path?: string | null
           source_type?: string | null
           source_url?: string | null
@@ -1137,7 +1278,7 @@ export type Database = {
       }
       claim_delivery_nonce: { Args: { _nonce: string }; Returns: boolean }
       claim_email_outbox: {
-        Args: { _limit: number }
+        Args: { _job_id?: string; _limit: number }
         Returns: {
           id: string
           idempotency_key: string
@@ -1160,6 +1301,10 @@ export type Database = {
           _size: number
         }
         Returns: string
+      }
+      consume_ai_quota: {
+        Args: { _kind: string; _limit: number; _user_id: string }
+        Returns: boolean
       }
       create_job: {
         Args: {
@@ -1186,6 +1331,8 @@ export type Database = {
         }
         Returns: string
       }
+      get_delivery_receipt: { Args: { _request_id: string }; Returns: Json }
+      get_job_eta: { Args: { _job_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1219,6 +1366,16 @@ export type Database = {
           _try_number: number
         }
         Returns: Json
+      }
+      set_job_eta: {
+        Args: {
+          _generating: number
+          _job_id: string
+          _qa: number
+          _ready_at: string
+          _review: number
+        }
+        Returns: undefined
       }
       set_job_status: {
         Args: { _job_id: string; _message: string; _status: string }
