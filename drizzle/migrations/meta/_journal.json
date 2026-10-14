@@ -36,6 +36,13 @@
       "when": 1791943631100,
       "tag": "0004_spoofer_callback_unversioned_attempt1_only",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791944287864,
+      "tag": "0005_source_video_duration_checks",
+      "breakpoints": true
     }
   ]
 }

@@ -639,6 +639,30 @@ export type Database = {
           },
         ]
       }
+      source_video_checks: {
+        Row: {
+          checked_at: string
+          duration_ms: number | null
+          file_path: string
+          ok: boolean
+          user_id: string
+        }
+        Insert: {
+          checked_at?: string
+          duration_ms?: number | null
+          file_path: string
+          ok: boolean
+          user_id: string
+        }
+        Update: {
+          checked_at?: string
+          duration_ms?: number | null
+          file_path?: string
+          ok?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       spoofer_sync: {
         Row: {
           attempts: number
