@@ -21,6 +21,9 @@ import { BUSINESS_TYPES, BUSINESS_TYPES_ES, SOURCE_LABELS, defaultDuration, dete
 import { cn } from "@/lib/utils";
 import { useServerFn } from "@tanstack/react-start";
 import { dispatchJobSync } from "@/lib/spoofer.functions";
+import { verifySourceVideo } from "@/lib/source-video.functions";
+import { isSourceTooLong } from "@/lib/mp4-duration";
+import { LIMIT_30_EN, LIMIT_30_ES } from "@/lib/data";
 
 export const Route = createFileRoute("/_authenticated/jobs/new")({
   head: ({ matches }) => ({ meta: [{ title: brandTitle(matches, "New video") }] }),
@@ -50,6 +53,8 @@ function NewJob() {
   const nav = useNavigate();
   const qc = useQueryClient();
   const dispatchSync = useServerFn(dispatchJobSync);
+  const verifyVideo = useServerFn(verifySourceVideo);
+  const limitMsg = t(LIMIT_30_EN, LIMIT_30_ES);
   const bal = useQuery(balanceQuery(user.id));
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -88,7 +93,12 @@ function NewJob() {
     setFile(f);
     const v = document.createElement("video");
     v.preload = "metadata";
-    v.onloadedmetadata = () => { setFileDur(Math.round(v.duration)); URL.revokeObjectURL(v.src); };
+    v.onloadedmetadata = () => {
+      URL.revokeObjectURL(v.src);
+      // Friendly preflight only; the server re-measures the uploaded file before the order is accepted.
+      if (isSourceTooLong(v.duration)) { setFile(null); toast.error(limitMsg); return; }
+      setFileDur(Math.min(30, Math.round(v.duration)));
+    };
     v.src = URL.createObjectURL(f);
   }
   function onImage(f: File | null) {
@@ -104,9 +114,12 @@ function NewJob() {
       if (platform === "youtube") {
         if ((start && parseMmSs(start) == null) || (end && parseMmSs(end) == null)) { toast.error(t("Use mm:ss for start and end", "Usa mm:ss para inicio y fin")); return false; }
         const a = parseMmSs(start), b = parseMmSs(end);
-        if (a != null && b != null && b <= a) { toast.error(t("End must be after start", "El final debe ser después del inicio")); return false; }
+        if (a == null || b == null) { toast.error(t("For regular YouTube videos, enter a start and end of 30 seconds or less.", "Para videos normales de YouTube, indica un inicio y un final de 30 segundos o menos.")); return false; }
+        if (b <= a) { toast.error(t("End must be after start", "El final debe ser después del inicio")); return false; }
+        if (b - a > 30) { toast.error(limitMsg); return false; }
       }
     } else if (!file) { toast.error(t("Upload an MP4 video", "Sube un video MP4")); return false; }
+    else if (fileDur == null) { toast.error(t("Still reading the video length… try again in a moment.", "Aún leyendo la duración del video… inténtalo en un momento.")); return false; }
     return true;
   }
   function validateSubject() {
@@ -134,6 +147,12 @@ function NewJob() {
         sourcePath = `${user.id}/${crypto.randomUUID()}.mp4`;
         const { error } = await supabase.storage.from("source-videos").upload(sourcePath, file, { contentType: "video/mp4" });
         if (error) throw error;
+        setProgress(t("Checking video length…", "Verificando la duración del video…"));
+        const v = await verifyVideo({ data: { path: sourcePath } });
+        if (!v.ok) {
+          setBusy(false); setProgress(null);
+          return toast.error(v.reason === "too_long" ? limitMsg : t("We couldn't read your video's length. Please upload a standard MP4 again.", "No pudimos leer la duración de tu video. Vuelve a subir un MP4 estándar."));
+        }
       }
       setProgress(t("Uploading reference image…", "Subiendo imagen de referencia…"));
       const ext = image!.name.split(".").pop()?.toLowerCase() || "jpg";
@@ -181,6 +200,7 @@ function NewJob() {
       <Card><CardContent className="space-y-5 pt-6">
         {step === 0 && (
           <Tabs value={mode} onValueChange={(v) => setMode(v as "link" | "upload")}>
+            <p className="mb-3 rounded-md border bg-muted/50 p-3 text-sm text-muted-foreground">{limitMsg}</p>
             <TabsList className="grid w-full grid-cols-2"><TabsTrigger value="link"><Link2 className="h-4 w-4" />{t("Paste link", "Pegar enlace")}</TabsTrigger><TabsTrigger value="upload"><Upload className="h-4 w-4" />{t("Upload MP4", "Subir MP4")}</TabsTrigger></TabsList>
             <TabsContent value="link" className="space-y-4 pt-4">
               <div className="space-y-2"><Label htmlFor="url">{t("Video link", "Enlace del video")}</Label><Input id="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://www.tiktok.com/@…" />
@@ -188,8 +208,8 @@ function NewJob() {
               </div>
               {platform === "youtube" && (
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2"><Label>{t("Start (mm:ss, optional)", "Inicio (mm:ss, opcional)")}</Label><Input value={start} onChange={(e) => setStart(e.target.value)} placeholder="0:00" /></div>
-                  <div className="space-y-2"><Label>{t("End (mm:ss, optional)", "Fin (mm:ss, opcional)")}</Label><Input value={end} onChange={(e) => setEnd(e.target.value)} placeholder="0:30" /></div>
+                  <div className="space-y-2"><Label>{t("Start (mm:ss)", "Inicio (mm:ss)")}</Label><Input value={start} onChange={(e) => setStart(e.target.value)} placeholder="0:00" /></div>
+                  <div className="space-y-2"><Label>{t("End (mm:ss)", "Fin (mm:ss)")}</Label><Input value={end} onChange={(e) => setEnd(e.target.value)} placeholder="0:30" /></div>
                 </div>
               )}
             </TabsContent>

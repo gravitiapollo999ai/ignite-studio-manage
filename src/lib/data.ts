@@ -58,6 +58,9 @@ export const balanceQuery = (userId: string) =>
     },
   });
 
+export const LIMIT_30_EN = "For now, videos are limited to 30 seconds. Longer videos are coming soon. Please submit a reel or clip of 30s or less.";
+export const LIMIT_30_ES = "Por ahora, los videos tienen un límite de 30 segundos. Pronto aceptaremos videos más largos. Envía un reel o clip de 30 s o menos.";
+
 /** Known backend/auth messages → [English, Spanish]. Anything unknown becomes a generic, translated message
  *  (raw technical errors are logged to the console, never shown to users). */
 const KNOWN: Array<[RegExp, string, string]> = [
@@ -75,6 +78,9 @@ const KNOWN: Array<[RegExp, string, string]> = [
   [/password should be|weak password/i, "Password is too weak (min. 6 characters).", "La contraseña es muy débil (mín. 6 caracteres)."],
   [/same.*password|different from the old/i, "Use a different password than your current one.", "Usa una contraseña distinta a la actual."],
   [/rate limit|too many/i, "Too many attempts. Please wait a minute.", "Demasiados intentos. Espera un minuto."],
+  [/source video longer than 30 seconds/i, LIMIT_30_EN, LIMIT_30_ES],
+  [/source video length unverified/i, "We couldn't read your video's length. Please upload a standard MP4 again.", "No pudimos leer la duración de tu video. Vuelve a subir un MP4 estándar."],
+  [/clip segment required/i, "For regular YouTube videos, enter a start and end of 30 seconds or less.", "Para videos normales de YouTube, indica un inicio y un final de 30 segundos o menos."],
   [/duration must be between/i, "Video length is out of range.", "La duración del video está fuera de rango."],
   [/reference image required/i, "Upload a reference image of the subject.", "Sube una imagen de referencia del sujeto."],
   [/source link required/i, "Paste a video link.", "Pega un enlace de video."],
