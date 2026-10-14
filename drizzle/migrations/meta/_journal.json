@@ -57,6 +57,13 @@
       "when": 1791951644718,
       "tag": "0007_complete_delivery_no_profile_lang",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791952173680,
+      "tag": "0008_delivery_lease_tokens_email_dispatch",
+      "breakpoints": true
     }
   ]
 }
