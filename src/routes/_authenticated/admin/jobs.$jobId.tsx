@@ -20,6 +20,7 @@ import { ALL_STATUSES, SOURCE_LABELS, STATUS_LABELS, STATUS_LABELS_ES, formatMmS
 import { useI18n } from "@/lib/i18n";
 import { SpooferSyncCard } from "@/components/spoofer-sync-card";
 import { DraftPromptButton } from "@/components/ai-helper";
+import { JobEta, JobEtaOverride } from "@/components/job-eta";
 
 export const Route = createFileRoute("/_authenticated/admin/jobs/$jobId")({
   head: ({ matches }) => ({ meta: [{ title: brandTitle(matches, "Admin · Job") }] }),
@@ -143,6 +144,7 @@ function AdminJob() {
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <SpooferSyncCard jobId={jobId} />
+          <Card><CardHeader><CardTitle>{t("Estimated ready time", "Tiempo estimado")}</CardTitle></CardHeader><CardContent className="space-y-4"><JobEta jobId={jobId} /><JobEtaOverride jobId={jobId} /></CardContent></Card>
           <Card className="border-primary/40">
             <CardHeader className="flex-row items-center justify-between space-y-0"><CardTitle>{t("Production handoff", "Traspaso a producción")}</CardTitle><Button size="sm" variant="outline" onClick={handoffJson}><FileJson className="h-4 w-4" />{t("Download handoff JSON", "Descargar JSON de traspaso")}</Button></CardHeader>
             <CardContent className="space-y-4">

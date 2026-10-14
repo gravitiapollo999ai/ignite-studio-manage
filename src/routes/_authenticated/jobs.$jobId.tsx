@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Empty, StatusBadge, useSettings } from "@/components/site";
 import { JobTimeline } from "@/components/job-timeline";
 import { PrivateVideoPlayer } from "@/components/private-video-player";
+import { JobEta } from "@/components/job-eta";
 import { brandTitle, errMsg, signedUrl } from "@/lib/data";
 import { useI18n } from "@/lib/i18n";
 import { SOURCE_LABELS, formatMmSs, type SourceType } from "@/lib/pricing";
@@ -74,6 +75,7 @@ function JobDetail() {
         <StatusBadge status={j.status} />
       </div>
       <Card><CardHeader><CardTitle>{t("Progress", "Progreso")}</CardTitle></CardHeader><CardContent>
+        <div className="mb-4"><JobEta jobId={j.id} /></div>
         <JobTimeline status={j.status} tryNumber={j.try_number} maxTries={Math.min(2, s.max_tries_per_video)} events={events.data ?? []} />
       </CardContent></Card>
       <Card>

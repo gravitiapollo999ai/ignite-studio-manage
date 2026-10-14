@@ -28,6 +28,8 @@ const schema = z.object({
   min_package_videos: z.coerce.number().int().positive(),
   default_turnaround_hours: z.coerce.number().int().positive(),
   max_tries_per_video: z.coerce.number().int().min(1).max(2),
+  eta_queue_minutes: z.coerce.number().int().min(0).max(1440), eta_review_minutes: z.coerce.number().int().min(0).max(1440),
+  eta_generating_minutes: z.coerce.number().int().min(0).max(1440), eta_qa_minutes: z.coerce.number().int().min(0).max(1440),
   hf_credits_per_30s: num, hf_plus_price: num, hf_plus_credits: num, hf_ultra_price: num, hf_ultra_credits: num,
 });
 
@@ -88,6 +90,10 @@ function SettingsPage() {
         <F name="min_package_videos" label={t("Minimum package (videos)", "Paquete mínimo (videos)")} type="number" />
         <F name="default_turnaround_hours" label={t("Turnaround (hours)", "Tiempo de entrega (horas)")} type="number" />
         <F name="max_tries_per_video" label={t("Max tries per video", "Intentos máx. por video")} type="number" />
+        <F name="eta_queue_minutes" label={t("Estimate: minutes per job ahead in queue", "Estimación: minutos por pedido en cola")} type="number" />
+        <F name="eta_review_minutes" label={t("Estimate: review minutes", "Estimación: minutos de revisión")} type="number" />
+        <F name="eta_generating_minutes" label={t("Estimate: generating minutes", "Estimación: minutos de generación")} type="number" />
+        <F name="eta_qa_minutes" label={t("Estimate: QA minutes", "Estimación: minutos de QA")} type="number" />
       </CardContent></Card>
       <Card><CardHeader><CardTitle>{t("Higgsfield comparison (estimates)", "Comparación con Higgsfield (estimaciones)")}</CardTitle></CardHeader><CardContent className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-5">
