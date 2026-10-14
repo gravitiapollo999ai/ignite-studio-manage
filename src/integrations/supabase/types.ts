@@ -326,6 +326,7 @@ export type Database = {
           file_path: string | null
           id: string
           job_id: string
+          lease_token: string
           lease_until: string
           size_bytes: number
           source: string
@@ -343,6 +344,7 @@ export type Database = {
           file_path?: string | null
           id?: string
           job_id: string
+          lease_token?: string
           lease_until: string
           size_bytes: number
           source: string
@@ -360,6 +362,7 @@ export type Database = {
           file_path?: string | null
           id?: string
           job_id?: string
+          lease_token?: string
           lease_until?: string
           size_bytes?: number
           source?: string
@@ -388,10 +391,14 @@ export type Database = {
           attempts: number
           created_at: string
           id: string
+          idempotency_key: string | null
           job_id: string
           lang: string
           last_error: string | null
+          lease_token: string | null
+          lease_until: string | null
           next_attempt_at: string
+          sent_at: string | null
           status: string
           template: string
           try_number: number
@@ -402,10 +409,14 @@ export type Database = {
           attempts?: number
           created_at?: string
           id?: string
+          idempotency_key?: string | null
           job_id: string
           lang?: string
           last_error?: string | null
+          lease_token?: string | null
+          lease_until?: string | null
           next_attempt_at?: string
+          sent_at?: string | null
           status: string
           template: string
           try_number: number
@@ -416,10 +427,14 @@ export type Database = {
           attempts?: number
           created_at?: string
           id?: string
+          idempotency_key?: string | null
           job_id?: string
           lang?: string
           last_error?: string | null
+          lease_token?: string | null
+          lease_until?: string | null
           next_attempt_at?: string
+          sent_at?: string | null
           status?: string
           template?: string
           try_number?: number
@@ -1121,12 +1136,28 @@ export type Database = {
         Returns: undefined
       }
       claim_delivery_nonce: { Args: { _nonce: string }; Returns: boolean }
+      claim_email_outbox: {
+        Args: { _limit: number }
+        Returns: {
+          id: string
+          idempotency_key: string
+          job_id: string
+          lang: string
+          lease_token: string
+          template: string
+          try_number: number
+          user_id: string
+        }[]
+      }
       complete_delivery: {
         Args: {
           _email_status: string
           _file_name: string
           _file_path: string
+          _lease_token: string
           _request_id: string
+          _sha: string
+          _size: number
         }
         Returns: string
       }
@@ -1143,6 +1174,15 @@ export type Database = {
           _subject_name: string
           _subject_type: string
           _target_duration_seconds: number
+        }
+        Returns: string
+      }
+      finish_email_outbox: {
+        Args: {
+          _error: string
+          _id: string
+          _lease_token: string
+          _result: string
         }
         Returns: string
       }
@@ -1167,6 +1207,7 @@ export type Database = {
         Args: { _job_id: string; _reason: string }
         Returns: undefined
       }
+      requeue_blocked_emails: { Args: never; Returns: number }
       reserve_delivery: {
         Args: {
           _actor: string

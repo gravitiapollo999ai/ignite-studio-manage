@@ -1,9 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { isSourceTooLong, readMp4Duration } from "./mp4-duration";
+import { RANGE_TIMEOUT_MS, exactRange, isSourceTooLong, readMp4Duration } from "./mp4-duration";
 
-/** Measures an uploaded source video's real length from its file header and records the trusted result. */
+/** Measures an uploaded source video's container duration from its header and records the trusted result. */
 export const verifySourceVideo = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ path: z.string().min(3).max(300).regex(/^[0-9a-f-]{36}\/[\w-]+\.mp4$/) }).parse(d))
@@ -13,22 +13,20 @@ export const verifySourceVideo = createServerFn({ method: "POST" })
     const signed = await supabaseAdmin.storage.from("source-videos").createSignedUrl(data.path, 300);
     if (!signed.data?.signedUrl) return { ok: false as const, reason: "missing" as const };
     const url = signed.data.signedUrl;
-    const head = await fetch(url, { headers: { Range: "bytes=0-0" } });
-    const total = Number(/\/(\d+)$/.exec(head.headers.get("content-range") ?? "")?.[1] ?? 0);
-    await head.body?.cancel();
     let seconds: number | null = null;
-    if (total > 0) {
-      seconds = await readMp4Duration(async (offset, length) => {
-        const end = Math.min(total - 1, offset + length - 1);
-        const r = await fetch(url, { headers: { Range: `bytes=${offset}-${end}` } });
-        return new Uint8Array(await r.arrayBuffer());
-      }, total).catch(() => null);
-    }
+    try {
+      const head = await fetch(url, { headers: { Range: "bytes=0-0" }, signal: AbortSignal.timeout(RANGE_TIMEOUT_MS) });
+      const m = head.status === 206 ? /^bytes 0-0\/(\d+)$/.exec(head.headers.get("content-range") ?? "") : null;
+      await head.body?.cancel();
+      const total = m ? Number(m[1]) : 0;
+      if (Number.isSafeInteger(total) && total > 0) seconds = await readMp4Duration((o, l) => exactRange(url, o, l, total), total);
+    } catch { seconds = null; }
     const ok = seconds != null && !isSourceTooLong(seconds);
-    await supabaseAdmin.from("source_video_checks").upsert({
+    const { error } = await supabaseAdmin.from("source_video_checks").upsert({
       file_path: data.path, user_id: context.userId, ok,
       duration_ms: seconds == null ? null : Math.round(seconds * 1000), checked_at: new Date().toISOString(),
     });
+    if (error) return { ok: false as const, reason: "unreadable" as const }; // fail closed: no trusted record written
     if (seconds == null) return { ok: false as const, reason: "unreadable" as const };
     return ok ? { ok: true as const, seconds } : { ok: false as const, reason: "too_long" as const, seconds };
   });

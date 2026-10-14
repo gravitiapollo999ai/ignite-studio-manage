@@ -23,8 +23,16 @@ POST
 ```
 
 ## Bodies
-A) `multipart/form-data`: `job_id` (uuid), `try_number` (int), optional `file_name`, `file` (MP4). Max 100 MB — body is buffered in Worker memory, not streamed.
-B) `application/json`: `{ job_id, try_number, video_url, video_sha256, file_name? }`. `video_url` must be https, exact host = Studio secret `SPOOFER_STORAGE_HOST`, path starting `/storage/v1/object/sign/`, no redirects, 60 s timeout, ≤100 MB, SHA must match. Disabled (`url_mode_not_configured`) until that host is set.
+Header envelope (presence, format, ±300 s) is checked BEFORE any body byte is read; body reads have a 30 s deadline.
+
+A) Preferred — `application/json` (≤16 KB):
+`{ job_id, try_number, video_url, video_sha256, video_size_bytes, file_name? }`
+`video_url` must be exactly `https://lcvqhteqxwbelvqdafni.supabase.co/storage/v1/object/sign/studio-inputs/finals/<receiver_job_id>/final.mp4?token=<signed token>`
+where `<receiver_job_id>` equals the Spoofer job id Studio stored from the intake response for this job. Only the `token` query key is allowed; no fragments, ports, credentials, encoded separators. Redirects are refused, 60 s timeout, max 40 MB; downloaded byte count must equal `video_size_bytes` and SHA-256 must equal `video_sha256`.
+
+B) Fallback — `multipart/form-data`: `job_id`, `try_number`, optional `file_name`, `file` (MP4), max 20 MB.
+
+Memory: everything is buffered in Worker memory, not streamed (multipart ≈3× file size peak, signed URL ≈1× + upload). Limits are set well under the 128 MB Worker cap; larger finals are refused with 413.
 
 ## Responses (JSON receipt, signed by `X-Studio-Receipt-Signature: v1=HMAC(secret, raw response body)`)
 | HTTP | outcome |
@@ -32,7 +40,9 @@ B) `application/json`: `{ job_id, try_number, video_url, video_sha256, file_name
 | 200 | `completed` / `already_completed` (idempotent retry of same bytes) |
 | 202 | `in_progress` (concurrent identical request; `Retry-After: 30`) |
 | 401 | missing / malformed / stale / body_hash / bad_signature |
-| 409 | `replay`, `conflict_different_bytes`, `conflict_older_attempt`, `conflict_already_delivered`, `conflict_cancelled`, `attempt_mismatch` |
+| 503 | `lease_expired` / `lease_lost` (retry with same bytes) |
+| 408 | body read timeout |
+| 409 | `replay`, `conflict_terminal`, `conflict_different_bytes`, `conflict_older_attempt`, `conflict_already_delivered`, `conflict_cancelled`, `attempt_mismatch` |
 | 413/415/422 | too large / not MP4 / sha mismatch |
 | 5xx | retry with the same bytes and a NEW nonce/timestamp (lease resumes after ≤5 min) |
 
@@ -59,6 +69,6 @@ curl -X POST https://ignite-studio-manage.lovable.app/api/public/deliver-video \
 Sign the exact bytes sent; do not let the HTTP client re-encode the multipart body.
 
 ## Semantics
-- Reservation per (job, try) with content SHA is atomic (row lock). Delivered is set only after the file is durably stored and the deliverable row is written, in one transaction that also writes one `video-ready` email outbox row.
+- Lock order is always job row → delivery request row. Reservation per (job, try) with content SHA + size returns a single-use `lease_token`; completion requires that token and an unexpired lease, so an expired worker cannot finalize a reclaimed lease. Delivered is set only after the file is durably stored and the deliverable row is written, in one transaction that also writes one `video-ready` email outbox row.
 - Jobs already Delivered without a deliver-video record (e.g. legacy callback deliveries) return `conflict_already_delivered` and are never modified.
 - Studio never calls Spoofer back from this route (no echo loop); Spoofer audits from the signed receipt.

@@ -31,3 +31,43 @@ describe("trusted upload duration (file header)", () => {
     expect(friendlyError("Source video longer than 30 seconds", "es")).toBe("Por ahora, los videos tienen un límite de 30 segundos. Pronto aceptaremos videos más largos. Envía un reel o clip de 30 s o menos.");
   });
 });
+
+import { durationFromMoov as dfm, readMp4Duration as rmd } from "./mp4-duration";
+describe("mp4 header hardening", () => {
+  const mvhd = (version: number, timescale: number, duration: number | bigint) => {
+    const b = new Uint8Array(version === 1 ? 8 + 32 : 8 + 20); const v = new DataView(b.buffer);
+    v.setUint32(0, b.length); b.set([0x6d, 0x76, 0x68, 0x64], 4); b[8] = version;
+    if (version === 1) { v.setUint32(8 + 20, timescale); v.setBigUint64(8 + 24, BigInt(duration)); }
+    else { v.setUint32(8 + 12, timescale); v.setUint32(8 + 16, Number(duration)); }
+    return b;
+  };
+  it("reads valid v0/v1", () => { expect(dfm(mvhd(0, 1000, 30000))).toBe(30); expect(dfm(mvhd(1, 1000, 10000))).toBe(10); });
+  it("rejects zero timescale, zero/unknown duration, unsupported version", () => {
+    expect(dfm(mvhd(0, 0, 100))).toBeNull();
+    expect(dfm(mvhd(0, 1000, 0))).toBeNull();
+    expect(dfm(mvhd(0, 1000, 0xffffffff))).toBeNull();
+    const b = mvhd(0, 1000, 30000); b[8] = 2; expect(dfm(b)).toBeNull();
+  });
+  it("rejects unsafe 64-bit / implausible values", () => {
+    expect(dfm(mvhd(1, 1, 2n ** 60n))).toBeNull();
+    expect(dfm(mvhd(1, 1, 10n ** 6n))).toBeNull();
+  });
+  it("rejects truncated mvhd and box overrun", () => {
+    expect(dfm(mvhd(0, 1000, 30000).slice(0, 20))).toBeNull();
+    const b = mvhd(0, 1000, 30000); new DataView(b.buffer).setUint32(0, 9999); expect(dfm(b)).toBeNull();
+  });
+  it("returns null when the reader returns short data", async () => {
+    const moov = new Uint8Array(8 + 28); new DataView(moov.buffer).setUint32(0, moov.length); moov.set([0x6d, 0x6f, 0x6f, 0x76], 4); moov.set(mvhd(0, 1000, 30000), 8);
+    expect(await rmd(async (o, l) => moov.slice(o, o + l), moov.length)).toBe(30);
+    expect(await rmd(async (o, l) => moov.slice(o, o + Math.max(0, l - 1)), moov.length)).toBeNull();
+  });
+});
+
+import { exactRange } from "./mp4-duration";
+describe("exact ranged reads", () => {
+  const f = (status: number, range: string, n: number) => (async () => new Response(new Uint8Array(n), { status, headers: { "content-range": range } })) as unknown as typeof fetch;
+  it("accepts exact 206 + matching content-range + byte count", async () => expect((await exactRange("u", 0, 16, 100, f(206, "bytes 0-15/100", 16))).length).toBe(16));
+  it("rejects 200 full-body responses", async () => { await expect(exactRange("u", 0, 16, 100, f(200, "", 100))).rejects.toThrow(); });
+  it("rejects mismatched content-range", async () => { await expect(exactRange("u", 0, 16, 100, f(206, "bytes 0-15/999", 16))).rejects.toThrow(); });
+  it("rejects short bodies", async () => { await expect(exactRange("u", 0, 16, 100, f(206, "bytes 0-15/100", 10))).rejects.toThrow(); });
+});
