@@ -71,6 +71,13 @@
       "when": 1791955852694,
       "tag": "0009_ai_helper_usage",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791955978369,
+      "tag": "0010_source_segment_policy",
+      "breakpoints": true
     }
   ]
 }

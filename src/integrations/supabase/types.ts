@@ -611,6 +611,9 @@ export type Database = {
           id: string
           notes: string | null
           reference_image_path: string | null
+          segment_end_seconds: number | null
+          segment_reason: string | null
+          segment_start_seconds: number | null
           source_file_path: string | null
           source_type: string
           source_url: string | null
@@ -633,6 +636,9 @@ export type Database = {
           id?: string
           notes?: string | null
           reference_image_path?: string | null
+          segment_end_seconds?: number | null
+          segment_reason?: string | null
+          segment_start_seconds?: number | null
           source_file_path?: string | null
           source_type: string
           source_url?: string | null
@@ -655,6 +661,9 @@ export type Database = {
           id?: string
           notes?: string | null
           reference_image_path?: string | null
+          segment_end_seconds?: number | null
+          segment_reason?: string | null
+          segment_start_seconds?: number | null
           source_file_path?: string | null
           source_type?: string
           source_url?: string | null
@@ -906,6 +915,7 @@ export type Database = {
           duration_ms: number | null
           file_path: string
           ok: boolean
+          status: string | null
           user_id: string
         }
         Insert: {
@@ -913,6 +923,7 @@ export type Database = {
           duration_ms?: number | null
           file_path: string
           ok: boolean
+          status?: string | null
           user_id: string
         }
         Update: {
@@ -920,6 +931,7 @@ export type Database = {
           duration_ms?: number | null
           file_path?: string
           ok?: boolean
+          status?: string | null
           user_id?: string
         }
         Relationships: []
@@ -1121,6 +1133,9 @@ export type Database = {
           job_id: string | null
           notes: string | null
           reference_image_path: string | null
+          segment_end_seconds: number | null
+          segment_reason: string | null
+          segment_start_seconds: number | null
           source_file_path: string | null
           source_type: string | null
           source_url: string | null
@@ -1140,6 +1155,9 @@ export type Database = {
           job_id?: string | null
           notes?: string | null
           reference_image_path?: string | null
+          segment_end_seconds?: number | null
+          segment_reason?: string | null
+          segment_start_seconds?: number | null
           source_file_path?: string | null
           source_type?: string | null
           source_url?: string | null
@@ -1159,6 +1177,9 @@ export type Database = {
           job_id?: string | null
           notes?: string | null
           reference_image_path?: string | null
+          segment_end_seconds?: number | null
+          segment_reason?: string | null
+          segment_start_seconds?: number | null
           source_file_path?: string | null
           source_type?: string | null
           source_url?: string | null
