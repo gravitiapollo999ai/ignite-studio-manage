@@ -48,7 +48,9 @@ Plan only. Nothing is implemented, published, sent or generated until the captai
 - New job columns `segment_start_seconds` / `segment_end_seconds` (nullable numeric), plus `segment_reason` (`explicit` | `auto_first_30` | `measured_short`).
 - `create_job` sets the segment server-side:
   - Upload measured ≤30.05 s: no segment (whole clip), `measured_short`.
-  - Upload unreadable: refused, as today. Uploads are ours, so unreadable means corrupt.
+  - Upload measured >30.05 s: blocked with the coming-soon message (EN/ES).
+  - Upload whose length can't be read but which passes the safety checks: ACCEPTED for production of only the first 30 s. Segment 0–30, `segment_reason = auto_first_30_unknown_length`, with the ES/EN notice. The check record stores `ok=false`, `duration_ms=null` and a new `status = 'unknown_duration'`, so it is never labelled measured and never given an invented passing duration. `create_job` accepts `unknown_duration` only together with the forced 0–30 segment.
+  - Upload that is actually corrupt, unsupported or unsafe: still refused. That covers no `ftyp` box, a container that isn't MP4/MOV, a path or owner mismatch, a missing object, and a size over the bucket limit. Result `status = 'rejected_media'`, with a clear ES/EN error.
   - Regular YouTube: an explicit segment is required, as today (≤30), `explicit`.
   - Instagram Reel / TikTok / Shorts (length not verifiable): forced segment 0–30, `auto_first_30`, unless the client gave an explicit segment ≤30, which is preserved.
 - A client notice explains "We'll use only the first 30 seconds / Usaremos solo los primeros 30 segundos".
@@ -56,11 +58,15 @@ Plan only. Nothing is implemented, published, sent or generated until the captai
   - the intake payload (`spoofer-sync.server.ts`, new fields `segment_start_seconds`, `segment_end_seconds`, `segment_reason`; additive and backward-compatible);
   - the production feed (`/api/public/jobs-feed`);
   - the receiver contract doc.
-- Production trims to that segment with its existing tooling during the human pipeline. Studio does not download or trim Instagram media itself (no unsupported bypass and no new service). If production cannot access the source, the job stays in review and the admin contacts the client. No duration evidence is invented.
+- Production applies the segment with its existing tooling. Studio never claims a trim happened: "trimmed" is recorded only when production reports it. Studio does not download or trim Instagram media itself (no unsupported bypass and no new service). If production cannot access the source, the job stays in review and the admin contacts the client. No duration evidence is invented.
+
+**Schema addition for this item:** `source_video_checks.status` text (`measured_ok` | `measured_too_long` | `unknown_duration` | `rejected_media`), with a CHECK constraint that `measured_ok` requires 0 < duration_ms ≤ 30050 and `unknown_duration` requires duration_ms null. Additive; existing rows are backfilled from `ok` / `duration_ms`.
 
 **Tests:**
 - Fixtures at 30.00 and 30.05 accepted, 30.06 and 31 rejected.
-- Truncated/overflow/unknown-duration header rejected as unreadable.
+- A valid MP4 with a truncated/overflow/unknown-duration header is accepted as `unknown_duration`, with a 0–30 segment enforced in `create_job`.
+- A file without `ftyp`, a non-MP4 file and a wrong owner are rejected as `rejected_media`.
+- `create_job` refuses `unknown_duration` without the forced segment.
 - `create_job` segment rules for each source type.
 - Explicit shorter segment preserved.
 - Feed and intake payload carry the segment.
