@@ -93,6 +93,13 @@ export const Route = createFileRoute("/api/public/deliver-video")({
           await log({ job_id: m.job_id, try_number: m.try_number, sha: preSha, size: preSize, source, outcome, http: status });
           return new Response(text, { status, headers: { "content-type": "application/json", "x-studio-receipt-signature": `v1=${await hmacHex(secret, text)}`, ...(status === 202 ? { "retry-after": "30" } : {}) } });
         };
+        // Completed deliveries always return the same receipt, rebuilt from persisted state.
+        const persisted = async () => {
+          const { data } = await admin.rpc("get_delivery_receipt", { _request_id: r.request_id! });
+          const d = (data ?? {}) as { status?: string; email?: string | null; completed_at?: string | null; size_bytes?: number };
+          return { status: d.status ?? null, email: d.email ?? null, completed_at: d.completed_at ?? null };
+        };
+        if (r.result === "already_completed") return receipt("already_completed", 200, await persisted());
         if (r.result !== "reserved") return receipt(r.result, httpStatusFor(r.result));
 
         try {
@@ -117,7 +124,7 @@ export const Route = createFileRoute("/api/public/deliver-video")({
           if (error) throw new Error("complete");
           if (done === "completed" || done === "already_completed") {
             if (emailStatus === "queued") await dispatchEmails(admin, 3).catch(() => undefined);
-            return receipt(done, 200, { status: "delivered", email: emailStatus });
+            return receipt(done, 200, await persisted());
           }
           return receipt(String(done), done === "lease_expired" || done === "lease_lost" ? 503 : 409);
         } catch (e) {
