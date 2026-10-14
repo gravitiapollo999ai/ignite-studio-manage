@@ -48,7 +48,9 @@ Plan only. Nothing is implemented, published, sent or generated until the captai
 - New job columns `segment_start_seconds` / `segment_end_seconds` (nullable numeric), plus `segment_reason` (`explicit` | `auto_first_30` | `measured_short`).
 - `create_job` sets the segment server-side:
   - Upload measured ≤30.05 s: no segment (whole clip), `measured_short`.
-  - Upload unreadable: refused, as today. Uploads are ours, so unreadable means corrupt.
+  - Upload measured >30.05 s: blocked with the coming-soon message (EN/ES).
+  - Upload whose length can't be read but which passes the safety checks: ACCEPTED for production of only the first 30 s. Segment 0–30, `segment_reason = auto_first_30_unknown_length`, with the ES/EN notice. The check record stores `ok=false`, `duration_ms=null` and a new `status = 'unknown_duration'`, so it is never labelled measured and never given an invented passing duration. `create_job` accepts `unknown_duration` only together with the forced 0–30 segment.
+  - Upload that is actually corrupt, unsupported or unsafe: still refused. That covers no `ftyp` box, a container that isn't MP4/MOV, a path or owner mismatch, a missing object, and a size over the bucket limit. Result `status = 'rejected_media'`, with a clear ES/EN error.
   - Regular YouTube: an explicit segment is required, as today (≤30), `explicit`.
   - Instagram Reel / TikTok / Shorts (length not verifiable): forced segment 0–30, `auto_first_30`, unless the client gave an explicit segment ≤30, which is preserved.
 - A client notice explains "We'll use only the first 30 seconds / Usaremos solo los primeros 30 segundos".
@@ -56,11 +58,15 @@ Plan only. Nothing is implemented, published, sent or generated until the captai
   - the intake payload (`spoofer-sync.server.ts`, new fields `segment_start_seconds`, `segment_end_seconds`, `segment_reason`; additive and backward-compatible);
   - the production feed (`/api/public/jobs-feed`);
   - the receiver contract doc.
-- Production trims to that segment with its existing tooling during the human pipeline. Studio does not download or trim Instagram media itself (no unsupported bypass and no new service). If production cannot access the source, the job stays in review and the admin contacts the client. No duration evidence is invented.
+- Production applies the segment with its existing tooling. Studio never claims a trim happened: "trimmed" is recorded only when production reports it. Studio does not download or trim Instagram media itself (no unsupported bypass and no new service). If production cannot access the source, the job stays in review and the admin contacts the client. No duration evidence is invented.
+
+**Schema addition for this item:** `source_video_checks.status` text (`measured_ok` | `measured_too_long` | `unknown_duration` | `rejected_media`), with a CHECK constraint that `measured_ok` requires 0 < duration_ms ≤ 30050 and `unknown_duration` requires duration_ms null. Additive; existing rows are backfilled from `ok` / `duration_ms`.
 
 **Tests:**
 - Fixtures at 30.00 and 30.05 accepted, 30.06 and 31 rejected.
-- Truncated/overflow/unknown-duration header rejected as unreadable.
+- A valid MP4 with a truncated/overflow/unknown-duration header is accepted as `unknown_duration`, with a 0–30 segment enforced in `create_job`.
+- A file without `ftyp`, a non-MP4 file and a wrong owner are rejected as `rejected_media`.
+- `create_job` refuses `unknown_duration` without the forced segment.
 - `create_job` segment rules for each source type.
 - Explicit shorter segment preserved.
 - Feed and intake payload carry the segment.
@@ -88,7 +94,27 @@ Plan only. Nothing is implemented, published, sent or generated until the captai
 - Signed URL exactly `https://lcvqhteqxwbelvqdafni.supabase.co/storage/v1/object/sign/studio-inputs/finals/<receiver UUID>/final.mp4?token=…`, where the receiver UUID is the id Studio recorded at intake.
 - Verify `X-Studio-Receipt-Signature`.
 - Treat 202/503 as retry with a new nonce and the same bytes.
-- Deployment compatibility: Studio publishes first. The old Spoofer sender, which has no size field, gets a 400 `invalid_fields` and keeps retrying harmlessly until Spoofer is updated. The legacy Bearer status callback keeps working throughout.
+- Receiver tolerance: Spoofer's `/api/public/studio/jobs` receiver must ignore unknown fields and store the new segment fields when present. The captain confirms this in the Spoofer editor before Studio sends them.
+- Feature flag: Spoofer's new deliver-video sender ships behind a non-secret flag, `STUDIO_DELIVER_VIDEO_ENABLED`, default OFF. While it's OFF, Spoofer keeps using the legacy Bearer `/api/public/spoofer/status` callback, which stays unchanged in Studio.
+
+**Staged, additive release (no deliberate live 400 window; no atomic two-site publish assumed):**
+
+```text
+Stage 0  today: published Studio has legacy callback only; published Spoofer uses legacy callback.
+Stage 1  Spoofer editor: new sender (video_size_bytes, caps, exact URL, receipt verify) behind flag OFF,
+         receiver tolerant of segment fields. Tested against Studio PREVIEW. Not yet published.
+Stage 2  Compatibility proof (both previews):
+           old Spoofer callback  -> new Studio : still 200 (legacy route unchanged)
+           new Spoofer sender    -> new Studio : 200 completed / already_completed, receipt verified
+           new Studio intake     -> old+new Spoofer receiver : 200, segment fields ignored/stored
+           new Spoofer (flag OFF)-> old Studio : legacy callback only, no deliver-video calls
+Stage 3  Release gate: captain OK, all Stage 2 checks PASS.
+Stage 4  Publish Spoofer (flag OFF)  -> behaviour identical to today; verify legacy callback live.
+Stage 5  Publish Studio (includes lock/lease repairs, 0005-0008 code, items a-e)
+         -> legacy callback still works; deliver-video live but unused; verify signed probe on JOB-000004.
+Stage 6  Turn Spoofer flag ON (config change, no publish) -> first real use on fixture dc823c96 only.
+Rollback: flag OFF instantly returns to the legacy callback; no schema rollback needed (all additive).
+```
 
 ## 5. Estimated ready time
 - **Formula (minutes):**
@@ -109,19 +135,26 @@ Plan only. Nothing is implemented, published, sent or generated until the captai
 - **Tests:** a pure `computeEta` with fixed clocks covering each stage, queue depth, overrides winning, the floor and delivered/cancelled → none. Plus a permission test that a client cannot set overrides.
 
 ## Verification and publication order
-1. Independent source review of all unpublished changes (migrations 0005–0008 already applied, the delivery and 30 s code, plus the new items 1, 3, 4 and 5).
-2. Implement in this order: 4 (gap fixes), 3, 5, 1. Item 2 needs no change.
-3. Unit tests: full suite. Re-run the rewritten fixture-only DB script on JOB-000004.
-4. Fixture-only endpoint E2E against the preview: a signed HMAC request for JOB-000004 (already delivered, so `already_completed` + receipt) and a cross-check with Spoofer fixture `dc823c96…` once Spoofer is aligned. No real mail and no Generate.
-5. Captain review of the PASS/FAIL/UNTESTED report.
-6. After captain OK: publish Studio (including the earlier lock/lease repairs), then Spoofer alignment, then signed-in live checks (admin JOB-000002 playback, invariant read-back).
+1. Implement in the mandated order: (a) DeepSeek brief helper and Seedance writer (section 1), (b) inline player (section 2, verify only), (c) 30 s policy (section 3), (d) delivery gap fixes with email on hold (section 4), (e) ETA (section 5).
+   - Hard dependencies (no reordering): (a) is built and tested with a mocked provider and stays fail-closed until the human enters `DEEPSEEK_API_KEY`; the live DeepSeek check happens after the key is entered. (c)'s segment fields go into the intake payload that (d)'s staged release carries, so the Spoofer receiver-tolerance check (Stage 1) gates sending them.
+2. After the build: open the secure Secrets form with name `DEEPSEEK_API_KEY` prefilled and the value blank, for human entry. Credentials are never invented, read or entered by us. Email and domain are not configured.
+3. Independent source review of both projects together (Studio: migrations 0005–0008 plus new ones, delivery, 30 s, items a–e; Spoofer: sender, flag, receiver tolerance).
+4. Tests: Studio unit suite; the rewritten fixture-only DB script pinned to JOB-000004 with claims scoped to it; Spoofer's suites; then Stage 2 compatibility proofs on both previews, using Spoofer fixture `dc823c96…`.
+5. Real-client E2E on the preview (upload length handling, DeepSeek helper, player, delivery):
+   - Use only the pinned synthetic fixtures.
+   - A real signed-in client order would require an existing client session and would charge 1 credit, so it's reported as a dependency for captain decision. No accounts are created and no charge happens without review.
+   - Record credits before and after.
+   - No production Generate and no real mail.
+6. PASS/FAIL/UNTESTED report, then captain release gate.
+7. Coordinated publish following Stages 4→5→6, then signed-in live checks: admin playback of JOB-000002, invariant read-back (JOB-000002/JOB-000003, balance 49, ledger counts), legacy callback still working.
 
 ## Current status
 - **PASS (reported):** Studio 75 unit / 24 DB; Spoofer 106 unit / 26 DB.
 - **UNTESTED:** full endpoint E2E, owner-client playback, live email (blocked).
 
 ## Blocking dependencies
-- `DEEPSEEK_API_KEY` for item 1, secure handoff after OK.
-- An owned email domain/provider for any email sending.
-- Spoofer editor changes for the size field, caps and receipt verification.
+- `DEEPSEEK_API_KEY` entered by a human in the secure form, needed for the live part of (a).
+- An owned email domain/provider for any email sending (on hold).
+- Spoofer editor changes: sender, flag, receiver tolerance, caps and receipt verification.
+- An existing client session, plus approval of a 1-credit charge, for any real-client order E2E.
 - Roberto's own confirmation for owner-side playback.
