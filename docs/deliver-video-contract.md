@@ -46,7 +46,7 @@ Memory: everything is buffered in Worker memory, not streamed (multipart ≈3× 
 | 413/415/422 | too large / not MP4 / sha mismatch |
 | 5xx | retry with the same bytes and a NEW nonce/timestamp (lease resumes after ≤5 min) |
 
-Receipt: `{ ok, outcome, job_id, try_number, sha256, delivery_id, received_at, size_bytes?, status?, email? }`. No URLs or secrets.
+Receipt: `{ ok, outcome, job_id, try_number, sha256, size_bytes, delivery_id, received_at, ... }`. On every 200 (`completed` and `already_completed`) it also carries `status`, `email` and `completed_at`, rebuilt from stored state, so retries get identical fields (only `received_at` differs). No URLs or secrets.
 
 ## curl (multipart)
 ```bash
@@ -72,3 +72,14 @@ Sign the exact bytes sent; do not let the HTTP client re-encode the multipart bo
 - Lock order is always job row → delivery request row. Reservation per (job, try) with content SHA + size returns a single-use `lease_token`; completion requires that token and an unexpired lease, so an expired worker cannot finalize a reclaimed lease. Delivered is set only after the file is durably stored and the deliverable row is written, in one transaction that also writes one `video-ready` email outbox row.
 - Jobs already Delivered without a deliver-video record (e.g. legacy callback deliveries) return `conflict_already_delivered` and are never modified.
 - Studio never calls Spoofer back from this route (no echo loop); Spoofer audits from the signed receipt.
+
+## Staged release with Spoofer (no live 400 window)
+Spoofer sender changes (applied in the Spoofer editor):
+1. Send `video_size_bytes` (exact bytes) in JSON mode; caps 40 MiB URL / 20 MiB multipart / 16 KiB JSON body.
+2. Exact signed URL above, receiver UUID = the id returned to Studio at intake.
+3. Verify `X-Studio-Receipt-Signature` = `v1=` + HMAC-SHA256(secret, raw response body) before trusting any receipt.
+4. 202/503/5xx → retry with the same bytes and a new nonce/timestamp; 409 → stop and flag.
+5. Ship behind non-secret flag `STUDIO_DELIVER_VIDEO_ENABLED` (default OFF). OFF = keep using the legacy Bearer `/api/public/spoofer/status` callback, which Studio keeps unchanged.
+6. Intake receiver ignores unknown fields; stores `segment_*` when present. Studio sends them only after `SPOOFER_SEGMENT_FIELDS=on`.
+
+Order: Spoofer publish (flag OFF) → Studio publish → signed probe on JOB-000004 → flip Spoofer flag ON → first use on Spoofer fixture dc823c96 only. Rollback = flag OFF.
