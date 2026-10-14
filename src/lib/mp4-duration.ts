@@ -96,9 +96,114 @@ export function hasFtyp(head: Uint8Array): boolean {
   return head.length >= 8 && head[4] === 0x66 && head[5] === 0x74 && head[6] === 0x79 && head[7] === 0x70;
 }
 
-/** Classifies a source from its first bytes and the (possibly null) header duration. Never invents a duration. */
+/** @deprecated legacy classifier kept for older callers/tests; verifySourceVideo uses probeMp4 + classifyProbe. */
 export function classifySource(head: Uint8Array, seconds: number | null): { status: SourceStatus } {
   if (!hasFtyp(head)) return { status: "rejected_media" };
   if (seconds == null || !Number.isFinite(seconds) || seconds <= 0) return { status: "unknown_duration" };
   return { status: isSourceTooLong(seconds) ? "measured_too_long" : "measured_ok" };
+}
+
+// ---------- Typed probe (post-review): malformed ≠ unknown ≠ io failure ----------
+
+export type Probe =
+  | { kind: "measured"; seconds: number }
+  | { kind: "unknown_declared" }
+  | { kind: "malformed"; reason: string }
+  | { kind: "io_error"; reason: string };
+
+export const PROBE_MAX_TOP_BOXES = 64;
+export const PROBE_MAX_READ_BYTES = 2 * 1024 * 1024;
+const BRANDS = new Set(["isom", "iso2", "iso3", "iso4", "iso5", "iso6", "mp41", "mp42", "mp71", "avc1", "hvc1", "hev1", "qt  ", "M4V ", "M4VH", "M4VP", "3gp4", "3gp5", "3gp6", "3g2a", "dash", "msnv", "f4v ", "XAVC", "MSNV"]);
+
+class IoError extends Error {}
+
+/** Parse mvhd in a moov payload (possibly a budget-bounded prefix of it). */
+export function probeMoov(moov: Uint8Array, complete: boolean): Probe {
+  let o = 0;
+  for (let i = 0; i < 4096 && o + 8 <= moov.length; i++) {
+    let size: number | null = u32(moov, o);
+    const t = type(moov, o + 4);
+    let hdr = 8;
+    if (size === 1) { if (o + 16 > moov.length) break; size = u64(moov, o + 8); hdr = 16; if (size == null) return { kind: "malformed", reason: "u64_overflow" }; }
+    else if (size === 0) size = moov.length - o;
+    if (size < hdr) return { kind: "malformed", reason: "box_size" };
+    if (t === "mvhd") {
+      if (o + size > moov.length) return { kind: "malformed", reason: complete ? "box_overrun" : "budget" };
+      const p = o + hdr;
+      const version = moov[p];
+      if (version !== 0 && version !== 1) return { kind: "malformed", reason: "mvhd_version" };
+      const need = version === 1 ? 32 : 20;
+      if (p + need > o + size) return { kind: "malformed", reason: "mvhd_truncated" };
+      const timescale = version === 1 ? u32(moov, p + 20) : u32(moov, p + 12);
+      if (!timescale) return { kind: "malformed", reason: "timescale_zero" };
+      if (version === 0 && u32(moov, p + 16) === 0xffffffff) return { kind: "unknown_declared" };
+      if (version === 1 && u32(moov, p + 24) === 0xffffffff && u32(moov, p + 28) === 0xffffffff) return { kind: "unknown_declared" };
+      const duration = version === 1 ? u64(moov, p + 24) : u32(moov, p + 16);
+      if (duration == null) return { kind: "malformed", reason: "u64_overflow" };
+      if (duration === 0) return { kind: "unknown_declared" }; // e.g. fragmented MP4: length lives in fragments
+      const s = duration / timescale;
+      if (!Number.isFinite(s) || s <= 0 || s > MAX_PLAUSIBLE_SECONDS) return { kind: "malformed", reason: "implausible" };
+      return { kind: "measured", seconds: s };
+    }
+    if (o + size > moov.length) return { kind: "malformed", reason: complete ? "box_overrun" : "budget" };
+    o += size;
+  }
+  return { kind: "malformed", reason: complete ? "no_mvhd" : "budget" };
+}
+
+/** Walk top-level boxes with a box-count and total-bytes budget. Reader failures → io_error (retry), never "unknown". */
+export async function probeMp4(read: RangeReader, fileSize: number): Promise<Probe> {
+  if (!Number.isSafeInteger(fileSize) || fileSize < 16) return { kind: "malformed", reason: "too_small" };
+  let used = 0;
+  const r = async (off: number, len: number) => {
+    if (used + len > PROBE_MAX_READ_BYTES) len = PROBE_MAX_READ_BYTES - used;
+    if (len <= 0) return null;
+    used += len;
+    let b: Uint8Array;
+    try { b = await read(off, len); } catch (e) { throw new IoError(e instanceof Error ? e.message : "read"); }
+    if (b.length !== len) throw new IoError("short_read");
+    return b;
+  };
+  try {
+    let o = 0;
+    for (let i = 0; i < PROBE_MAX_TOP_BOXES && o + 8 <= fileSize; i++) {
+      const h = await r(o, Math.min(16, fileSize - o));
+      if (!h) return { kind: "malformed", reason: "budget" };
+      let size: number | null = u32(h, 0);
+      const t = type(h, 4);
+      let hdr = 8;
+      if (size === 1) { if (h.length < 16) return { kind: "malformed", reason: "box_size" }; size = u64(h, 8); hdr = 16; if (size == null) return { kind: "malformed", reason: "u64_overflow" }; }
+      else if (size === 0) size = fileSize - o;
+      if (size < hdr || o + size > fileSize) return { kind: "malformed", reason: size < hdr ? "box_size" : "box_overrun" };
+      if (i === 0) {
+        if (t !== "ftyp" || size < 16) return { kind: "malformed", reason: "no_ftyp" };
+        const brand = String.fromCharCode(h[8], h[9], h[10], h[11]);
+        if (!BRANDS.has(brand)) {
+          const body = await r(o + 16, Math.min(size - 16, 256));
+          let compat = false;
+          for (let k = 0; body && k + 4 <= body.length; k += 4) if (BRANDS.has(String.fromCharCode(body[k], body[k + 1], body[k + 2], body[k + 3]))) compat = true;
+          if (!compat) return { kind: "malformed", reason: "brand" };
+        }
+      }
+      if (t === "moov") {
+        const want = size - hdr;
+        const body = await r(o + hdr, want);
+        if (!body) return { kind: "malformed", reason: "budget" };
+        return probeMoov(body, body.length === want);
+      }
+      o += size;
+    }
+    return { kind: "malformed", reason: "no_moov" };
+  } catch (e) {
+    if (e instanceof IoError) return { kind: "io_error", reason: e.message };
+    throw e;
+  }
+}
+
+/** Probe → persisted status. io_error returns null: record nothing, ask to retry. */
+export function classifyProbe(p: Probe): SourceStatus | null {
+  if (p.kind === "io_error") return null;
+  if (p.kind === "malformed") return "rejected_media";
+  if (p.kind === "unknown_declared") return "unknown_duration";
+  return isSourceTooLong(p.seconds) ? "measured_too_long" : "measured_ok";
 }
