@@ -1,5 +1,7 @@
 // Server-only: pushes Studio jobs to Spoofer. Never import from client code.
-import { backoffMinutes, isFinalFailure, redact, SPOOFER_CREATE_PATH, SPOOFER_DEFAULT_BASE_URL } from "./spoofer-contract";
+import { backoffMinutes, isFinalFailure, redact, shouldHoldForSegment, SPOOFER_CREATE_PATH, SPOOFER_DEFAULT_BASE_URL } from "./spoofer-contract";
+
+const segmentFieldsOn = () => process.env["SPOOFER_SEGMENT_FIELDS"] === "on";
 
 type Admin = (typeof import("@/integrations/supabase/client.server"))["supabaseAdmin"];
 
@@ -53,6 +55,14 @@ export async function pushOne(admin: Admin, jobId: string): Promise<{ ok: boolea
   if (!secret) {
     await admin.from("spoofer_sync").update({ last_error: "Missing secret SPOOFER_SYNC_SECRET", updated_at: new Date().toISOString() }).eq("job_id", jobId);
     return { ok: false, error: "Missing secret SPOOFER_SYNC_SECRET" };
+  }
+  // Segment gate: a restricted job (explicit or auto first-30) must never reach legacy production without its segment.
+  const { data: job } = await admin.from("jobs").select("segment_reason").eq("id", jobId).maybeSingle();
+  if (shouldHoldForSegment(job?.segment_reason ?? null, segmentFieldsOn())) {
+    const { data: held } = await admin.from("spoofer_sync").update({ state: "held_segment", held_reason: "segment_transport_off", updated_at: new Date().toISOString() })
+      .eq("job_id", jobId).eq("state", "pending").select("job_id").maybeSingle();
+    if (held) await log(admin, { job_id: jobId, direction: "outbound", event: "held_segment", ok: false, message: `segment-restricted (${job?.segment_reason}); transport off` });
+    return { ok: false, error: "held_segment" };
   }
   const { data: claimed } = await admin.from("spoofer_sync").update({ state: "sending", updated_at: new Date().toISOString() })
     .eq("job_id", jobId).eq("state", "pending").lte("next_attempt_at", new Date().toISOString()).select("attempts").maybeSingle();
