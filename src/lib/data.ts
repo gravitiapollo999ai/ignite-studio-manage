@@ -7,7 +7,7 @@ export type Pkg = Database["public"]["Tables"]["packages"]["Row"];
 export type Job = Database["public"]["Tables"]["jobs"]["Row"];
 
 export const DEFAULT_SETTINGS: Settings = {
-  id: 1,
+  id: 1, eta_queue_minutes: 30, eta_review_minutes: 15, eta_generating_minutes: 30, eta_qa_minutes: 15,
   brand_name: "Studio",
   logo_url: null,
   accent_color: "#0EA5A4",
