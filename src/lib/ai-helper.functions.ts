@@ -1,11 +1,17 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { durationFitsSegment } from "./ai-segment";
 
 /** Whether the AI helper is configured (never reveals the key). */
 export const aiHelperStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async () => ({ configured: !!process.env["DEEPSEEK_API_KEY"] }));
+
+async function safeLog(admin: { from: (t: "ai_helper_log") => { insert: (r: never) => PromiseLike<{ error: unknown }> } }, row: Record<string, unknown>) {
+  try { const { error } = await admin.from("ai_helper_log").insert(row as never); if (error) console.warn("[ai-helper] usage log insert failed"); }
+  catch { console.warn("[ai-helper] usage log insert failed"); }
+}
 
 async function sha(s: string) {
   const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
@@ -28,7 +34,7 @@ export const aiImproveBrief = createServerFn({ method: "POST" })
     if (allowed !== true) return { ok: false as const, reason: "quota" as const };
     const t0 = Date.now();
     const r = await improveBrief(data);
-    await supabaseAdmin.from("ai_helper_log").insert({
+    await safeLog(supabaseAdmin, {
       user_id: context.userId, kind: "brief", model: DEEPSEEK_MODEL, outcome: r.ok ? "ok" : r.reason,
       input_chars: data.draft.length, output_chars: r.ok ? r.data.brief_en.length + r.data.brief_es.length : null,
       input_sha256: await sha(data.draft), latency_ms: Date.now() - t0,
@@ -50,19 +56,23 @@ export const aiDraftPrompt = createServerFn({ method: "POST" })
     if (!j) return { ok: false as const, reason: "not_found" as const };
     const { data: allowed } = await supabaseAdmin.rpc("consume_ai_quota", { _user_id: context.userId, _kind: "prompt", _limit: DAILY_LIMITS.prompt });
     if (allowed !== true) return { ok: false as const, reason: "quota" as const };
-    const seg = j as unknown as { segment_start_seconds?: number | null; segment_end_seconds?: number | null };
+    // Truthful drafts only: both paired inputs must exist; we never send media, paths, URLs, emails or job_internal.
+    if (!(j.source_file_path || j.source_url) || !j.reference_image_path) return { ok: false as const, reason: "missing_inputs" as const };
+    const segStart = j.segment_start_seconds ?? j.clip_start ?? 0;
+    const segEnd = j.segment_end_seconds ?? j.clip_end ?? Math.min(30, j.target_duration_seconds ?? 30);
     const input = {
-      brief: j.notes ?? "", subject_name: j.subject_name, subject_type: j.subject_type, business_type: j.business_type,
-      segment_start: seg.segment_start_seconds ?? j.clip_start, segment_end: seg.segment_end_seconds ?? j.clip_end,
-      source_type: j.source_type, has_source: !!(j.source_file_path || j.source_url), has_reference: !!j.reference_image_path,
+      brief: (j.notes ?? "").slice(0, 2000), subject_name: String(j.subject_name ?? "").slice(0, 100), subject_type: String(j.subject_type ?? "").slice(0, 50),
+      business_type: j.business_type ? String(j.business_type).slice(0, 100) : null,
+      segment_start: segStart, segment_end: segEnd, source_type: j.source_type, has_source: true, has_reference: true,
     };
     const t0 = Date.now();
     const r = await draftSeedancePrompt(input);
-    await supabaseAdmin.from("ai_helper_log").insert({
+    await safeLog(supabaseAdmin, {
       user_id: context.userId, job_id: j.id, kind: "prompt", model: DEEPSEEK_MODEL, outcome: r.ok ? "ok" : r.reason,
       input_chars: input.brief.length, output_chars: r.ok ? r.data.prompt.length : null, input_sha256: await sha(input.brief), latency_ms: Date.now() - t0,
     });
     if (!r.ok) return { ok: false as const, reason: r.reason };
-    const text = `[DRAFT — needs captain gate · ${DEEPSEEK_MODEL}]\n${r.data.prompt}\n\nNegative: ${r.data.negative_prompt}\nShots:\n${(r.data.shot_notes ?? []).map((s) => `- ${s}`).join("\n")}\nDuration: ${r.data.duration_seconds}s\nInputs: source video + subject reference image (paired).`;
+    if (!durationFitsSegment(r.data.duration_seconds, Number(segStart), Number(segEnd))) return { ok: false as const, reason: "invalid_output" as const };
+    const text = `[DRAFT — needs captain gate · ${DEEPSEEK_MODEL}] ${j.code} · try ${j.try_number} · segment ${segStart}–${segEnd}s (${j.segment_reason ?? "unspecified"})\nTiming not analysed from media: no source analysis was supplied.\n${r.data.prompt}\n\nNegative: ${r.data.negative_prompt}\nShots:\n${(r.data.shot_notes ?? []).map((s) => `- ${s}`).join("\n")}\nDuration: ${r.data.duration_seconds}s\nInputs on file: source video + subject reference image (paired; not sent to the AI).`;
     return { ok: true as const, draft: text };
   });
