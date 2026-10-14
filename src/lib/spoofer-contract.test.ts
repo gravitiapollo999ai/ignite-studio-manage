@@ -64,6 +64,16 @@ describe("monotonic callbacks (same attempt)", () => {
   });
   it("a Studio-established revision (try 2) restarts the ladder", () => {
     expect(decideCallback("revision", "in_review", 2, 2)).toBe("applied");
-    expect(decideCallback("revision", "in_review", 2)).toBe("applied");
+  });
+});
+
+describe("unversioned callbacks", () => {
+  it("are accepted for attempt 1 (legacy compatibility)", () => {
+    expect(decideCallback("qa", "delivered", 1)).toBe("applied");
+  });
+  it("cannot advance a revised attempt 2 — an old delayed callback must not mark it delivered", () => {
+    expect(decideCallback("revision", "delivered", 2)).toBe("attempt_mismatch");
+    expect(decideCallback("revision", "in_review", 2)).toBe("attempt_mismatch");
+    expect(decideCallback("generating", "qa", 2)).toBe("attempt_mismatch");
   });
 });

@@ -63,7 +63,8 @@ export type CallbackDecision = "applied" | "noop" | "stale" | "terminal" | "atte
 
 /** Pure mirror of apply_spoofer_callback's acceptance rule (the DB function is the atomic authority). */
 export function decideCallback(current: string, next: string, jobTry: number, callbackTry?: number | null): CallbackDecision {
-  if (callbackTry != null && callbackTry !== jobTry) return "attempt_mismatch";
+  // Unversioned callbacks are legacy-compatible only for attempt 1 (never assigned to a revised attempt).
+  if (callbackTry == null ? jobTry > 1 : callbackTry !== jobTry) return "attempt_mismatch";
   const cur = STATUS_RANK[current] ?? 0, nxt = STATUS_RANK[next];
   if (cur >= 5) return "terminal";
   if (nxt < cur) return "stale";
