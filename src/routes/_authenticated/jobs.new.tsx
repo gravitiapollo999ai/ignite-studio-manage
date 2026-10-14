@@ -200,6 +200,7 @@ function NewJob() {
       <Card><CardContent className="space-y-5 pt-6">
         {step === 0 && (
           <Tabs value={mode} onValueChange={(v) => setMode(v as "link" | "upload")}>
+            <p className="mb-3 rounded-md border bg-muted/50 p-3 text-sm text-muted-foreground">{limitMsg}</p>
             <TabsList className="grid w-full grid-cols-2"><TabsTrigger value="link"><Link2 className="h-4 w-4" />{t("Paste link", "Pegar enlace")}</TabsTrigger><TabsTrigger value="upload"><Upload className="h-4 w-4" />{t("Upload MP4", "Subir MP4")}</TabsTrigger></TabsList>
             <TabsContent value="link" className="space-y-4 pt-4">
               <div className="space-y-2"><Label htmlFor="url">{t("Video link", "Enlace del video")}</Label><Input id="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://www.tiktok.com/@…" />
@@ -207,7 +208,7 @@ function NewJob() {
               </div>
               {platform === "youtube" && (
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2"><Label>{t("Start (mm:ss, optional)", "Inicio (mm:ss, opcional)")}</Label><Input value={start} onChange={(e) => setStart(e.target.value)} placeholder="0:00" /></div>
+                  <div className="space-y-2"><Label>{t("Start (mm:ss)", "Inicio (mm:ss)")}</Label><Input value={start} onChange={(e) => setStart(e.target.value)} placeholder="0:00" /></div>
                   <div className="space-y-2"><Label>{t("End (mm:ss)", "Fin (mm:ss)")}</Label><Input value={end} onChange={(e) => setEnd(e.target.value)} placeholder="0:30" /></div>
                 </div>
               )}
