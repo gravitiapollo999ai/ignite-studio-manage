@@ -123,7 +123,7 @@ export const Route = createFileRoute("/api/public/deliver-video")({
           });
           if (error) throw new Error("complete");
           if (done === "completed" || done === "already_completed") {
-            if (emailStatus === "queued") await dispatchEmails(admin, 3).catch(() => undefined);
+            if (emailStatus === "queued") await dispatchEmails(admin, 3, undefined, m.job_id).catch(() => undefined);
             return receipt(done, 200, await persisted());
           }
           return receipt(String(done), done === "lease_expired" || done === "lease_lost" ? 503 : 409);
