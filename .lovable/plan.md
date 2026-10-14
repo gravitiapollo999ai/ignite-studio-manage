@@ -94,7 +94,27 @@ Plan only. Nothing is implemented, published, sent or generated until the captai
 - Signed URL exactly `https://lcvqhteqxwbelvqdafni.supabase.co/storage/v1/object/sign/studio-inputs/finals/<receiver UUID>/final.mp4?token=…`, where the receiver UUID is the id Studio recorded at intake.
 - Verify `X-Studio-Receipt-Signature`.
 - Treat 202/503 as retry with a new nonce and the same bytes.
-- Deployment compatibility: Studio publishes first. The old Spoofer sender, which has no size field, gets a 400 `invalid_fields` and keeps retrying harmlessly until Spoofer is updated. The legacy Bearer status callback keeps working throughout.
+- Receiver tolerance: Spoofer's `/api/public/studio/jobs` receiver must ignore unknown fields and store the new segment fields when present. The captain confirms this in the Spoofer editor before Studio sends them.
+- Feature flag: Spoofer's new deliver-video sender ships behind a non-secret flag, `STUDIO_DELIVER_VIDEO_ENABLED`, default OFF. While it's OFF, Spoofer keeps using the legacy Bearer `/api/public/spoofer/status` callback, which stays unchanged in Studio.
+
+**Staged, additive release (no deliberate live 400 window; no atomic two-site publish assumed):**
+
+```text
+Stage 0  today: published Studio has legacy callback only; published Spoofer uses legacy callback.
+Stage 1  Spoofer editor: new sender (video_size_bytes, caps, exact URL, receipt verify) behind flag OFF,
+         receiver tolerant of segment fields. Tested against Studio PREVIEW. Not yet published.
+Stage 2  Compatibility proof (both previews):
+           old Spoofer callback  -> new Studio : still 200 (legacy route unchanged)
+           new Spoofer sender    -> new Studio : 200 completed / already_completed, receipt verified
+           new Studio intake     -> old+new Spoofer receiver : 200, segment fields ignored/stored
+           new Spoofer (flag OFF)-> old Studio : legacy callback only, no deliver-video calls
+Stage 3  Release gate: captain OK, all Stage 2 checks PASS.
+Stage 4  Publish Spoofer (flag OFF)  -> behaviour identical to today; verify legacy callback live.
+Stage 5  Publish Studio (includes lock/lease repairs, 0005-0008 code, items a-e)
+         -> legacy callback still works; deliver-video live but unused; verify signed probe on JOB-000004.
+Stage 6  Turn Spoofer flag ON (config change, no publish) -> first real use on fixture dc823c96 only.
+Rollback: flag OFF instantly returns to the legacy callback; no schema rollback needed (all additive).
+```
 
 ## 5. Estimated ready time
 - **Formula (minutes):**
