@@ -162,3 +162,47 @@ export function httpStatusFor(r: ReserveResult | "completed"): number {
   if (r === "not_found") return 404;
   return 409;
 }
+
+// ---------- Segment trim evidence (post-review gate) ----------
+export type TrimEvidence = { segment_start: number; segment_end: number; source_sha256: string; try_number: number; final_sha256: string; final_size_bytes: number };
+export const trimEvidenceSchemaShape = {
+  segment_start: "number", segment_end: "number", source_sha256: "hex64", try_number: "int", final_sha256: "hex64", final_size_bytes: "int",
+} as const;
+
+export function parseTrimEvidence(v: unknown): TrimEvidence | null {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return null;
+  const e = v as Record<string, unknown>;
+  const num = (x: unknown) => typeof x === "number" && Number.isFinite(x);
+  const hex = (x: unknown) => typeof x === "string" && /^[0-9a-f]{64}$/.test(x);
+  if (!num(e.segment_start) || !num(e.segment_end) || !hex(e.source_sha256) || !hex(e.final_sha256)) return null;
+  if (!Number.isSafeInteger(e.try_number) || !Number.isSafeInteger(e.final_size_bytes)) return null;
+  return e as unknown as TrimEvidence;
+}
+
+export type EvidenceJob = { segment_reason: string | null; segment_start_seconds: number | null; segment_end_seconds: number | null; source_sha256: string | null; try_number: number };
+export type EvidenceVerdict = "not_required" | "ok" | "evidence_required" | "source_unverifiable" | "evidence_mismatch";
+
+/** Restricted jobs need evidence bound to the exact Studio source bytes, segment, attempt and final file. Never inferred from duration. */
+export function checkTrimEvidence(job: EvidenceJob, ev: TrimEvidence | null, final: { sha256: string; size: number; tryNumber: number }): EvidenceVerdict {
+  if (job.segment_reason == null || job.segment_reason === "measured_short") return "not_required";
+  if (!ev) return "evidence_required";
+  if (!job.source_sha256) return "source_unverifiable"; // links: no Studio-held bytes to bind to → stays in review
+  const s = Number(job.segment_start_seconds), e = Number(job.segment_end_seconds);
+  if (!Number.isFinite(s) || !Number.isFinite(e)) return "evidence_mismatch";
+  if (Math.abs(ev.segment_start - s) > 0.05 || Math.abs(ev.segment_end - e) > 0.05) return "evidence_mismatch";
+  if (ev.source_sha256 !== job.source_sha256 || ev.try_number !== job.try_number || ev.try_number !== final.tryNumber) return "evidence_mismatch";
+  if (ev.final_sha256 !== final.sha256 || ev.final_size_bytes !== final.size) return "evidence_mismatch";
+  return "ok";
+}
+
+/** Final must not exceed the segment span (+ container rounding). */
+export function finalWithinSegment(finalSeconds: number, job: EvidenceJob): boolean {
+  const span = job.segment_reason && job.segment_reason !== "measured_short" ? Number(job.segment_end_seconds) - Number(job.segment_start_seconds) : 30;
+  return Number.isFinite(finalSeconds) && finalSeconds > 0 && finalSeconds <= span + 0.05;
+}
+
+/** Canonical receipt fields compared across completed / already_completed (outcome and received_at excluded). */
+export function canonicalReceipt(r: Record<string, unknown>) {
+  const { outcome: _o, received_at: _r, ok: _k, ...rest } = r;
+  return rest;
+}
