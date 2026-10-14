@@ -521,6 +521,51 @@ export type Database = {
           },
         ]
       }
+      job_eta_overrides: {
+        Row: {
+          generating_minutes: number | null
+          job_id: string
+          qa_minutes: number | null
+          ready_at: string | null
+          review_minutes: number | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          generating_minutes?: number | null
+          job_id: string
+          qa_minutes?: number | null
+          ready_at?: string | null
+          review_minutes?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          generating_minutes?: number | null
+          job_id?: string
+          qa_minutes?: number | null
+          ready_at?: string | null
+          review_minutes?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_eta_overrides_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: true
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_eta_overrides_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: true
+            referencedRelation: "jobs_feed"
+            referencedColumns: ["job_id"]
+          },
+        ]
+      }
       job_events: {
         Row: {
           created_at: string
@@ -746,6 +791,10 @@ export type Database = {
           brand_name: string
           credits_per_video: number
           default_turnaround_hours: number
+          eta_generating_minutes: number
+          eta_qa_minutes: number
+          eta_queue_minutes: number
+          eta_review_minutes: number
           feed_last_success_at: string | null
           hf_credits_per_30s: number
           hf_plus_credits: number
@@ -765,6 +814,10 @@ export type Database = {
           brand_name?: string
           credits_per_video?: number
           default_turnaround_hours?: number
+          eta_generating_minutes?: number
+          eta_qa_minutes?: number
+          eta_queue_minutes?: number
+          eta_review_minutes?: number
           feed_last_success_at?: string | null
           hf_credits_per_30s?: number
           hf_plus_credits?: number
@@ -784,6 +837,10 @@ export type Database = {
           brand_name?: string
           credits_per_video?: number
           default_turnaround_hours?: number
+          eta_generating_minutes?: number
+          eta_qa_minutes?: number
+          eta_queue_minutes?: number
+          eta_review_minutes?: number
           feed_last_success_at?: string | null
           hf_credits_per_30s?: number
           hf_plus_credits?: number
@@ -1275,6 +1332,7 @@ export type Database = {
         Returns: string
       }
       get_delivery_receipt: { Args: { _request_id: string }; Returns: Json }
+      get_job_eta: { Args: { _job_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1308,6 +1366,16 @@ export type Database = {
           _try_number: number
         }
         Returns: Json
+      }
+      set_job_eta: {
+        Args: {
+          _generating: number
+          _job_id: string
+          _qa: number
+          _ready_at: string
+          _review: number
+        }
+        Returns: undefined
       }
       set_job_status: {
         Args: { _job_id: string; _message: string; _status: string }
