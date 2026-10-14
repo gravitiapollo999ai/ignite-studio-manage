@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Empty, StatusBadge, useSettings } from "@/components/site";
 import { JobTimeline } from "@/components/job-timeline";
+import { PrivateVideoPlayer } from "@/components/private-video-player";
 import { brandTitle, errMsg, signedUrl } from "@/lib/data";
 import { useI18n } from "@/lib/i18n";
 import { SOURCE_LABELS, formatMmSs, type SourceType } from "@/lib/pricing";
@@ -80,7 +81,7 @@ function JobDetail() {
         <CardContent>
           {files.data?.length === 0 ? <Empty title={t("Not ready yet", "Aún no está listo")}>{t("Your finished videos will appear here.", "Tus videos terminados aparecerán aquí.")}</Empty> : (
             <div className="divide-y divide-border">{files.data?.map((f) => (
-              <div key={f.id} className="flex items-center justify-between py-3"><div><p className="font-medium">{f.file_name}</p><p className="text-xs text-muted-foreground">{t("Try", "Intento")} {f.try_number} · {format(new Date(f.created_at), "MMM d", dateLocale)}</p></div>
+              <div key={f.id} className="flex flex-wrap items-center justify-between gap-3 py-3"><div className="space-y-2">{/\.(mp4|mov|webm)$/i.test(f.file_name) && <PrivateVideoPlayer path={f.file_path} />}<p className="font-medium">{f.file_name}</p><p className="text-xs text-muted-foreground">{t("Try", "Intento")} {f.try_number} · {format(new Date(f.created_at), "MMM d", dateLocale)}</p></div>
                 <div className="flex flex-wrap justify-end gap-2"><Button size="sm" onClick={() => download(f.file_path, f.file_name)}><Download className="h-4 w-4" />{t("Download", "Descargar")}</Button>
                   <Button size="sm" variant="outline" disabled title={t("Coming soon", "Próximamente")}>{t("Post to TikTok · Coming soon", "Publicar en TikTok · Próximamente")}</Button>
                   <Button size="sm" variant="outline" disabled title={t("Coming soon", "Próximamente")}>{t("Post to Instagram · Coming soon", "Publicar en Instagram · Próximamente")}</Button></div></div>

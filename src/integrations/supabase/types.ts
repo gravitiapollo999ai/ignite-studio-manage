@@ -260,6 +260,189 @@ export type Database = {
           },
         ]
       }
+      delivery_log: {
+        Row: {
+          actor: string
+          content_sha256: string | null
+          created_at: string
+          http_status: number | null
+          id: string
+          job_id: string | null
+          outcome: string
+          size_bytes: number | null
+          source: string
+          try_number: number | null
+        }
+        Insert: {
+          actor: string
+          content_sha256?: string | null
+          created_at?: string
+          http_status?: number | null
+          id?: string
+          job_id?: string | null
+          outcome: string
+          size_bytes?: number | null
+          source: string
+          try_number?: number | null
+        }
+        Update: {
+          actor?: string
+          content_sha256?: string | null
+          created_at?: string
+          http_status?: number | null
+          id?: string
+          job_id?: string | null
+          outcome?: string
+          size_bytes?: number | null
+          source?: string
+          try_number?: number | null
+        }
+        Relationships: []
+      }
+      delivery_nonces: {
+        Row: {
+          created_at: string
+          nonce: string
+        }
+        Insert: {
+          created_at?: string
+          nonce: string
+        }
+        Update: {
+          created_at?: string
+          nonce?: string
+        }
+        Relationships: []
+      }
+      delivery_requests: {
+        Row: {
+          actor: string
+          attempts: number
+          claimed_actor: string | null
+          completed_at: string | null
+          content_sha256: string
+          created_at: string
+          file_name: string | null
+          file_path: string | null
+          id: string
+          job_id: string
+          lease_until: string
+          size_bytes: number
+          source: string
+          state: string
+          try_number: number
+        }
+        Insert: {
+          actor: string
+          attempts?: number
+          claimed_actor?: string | null
+          completed_at?: string | null
+          content_sha256: string
+          created_at?: string
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          job_id: string
+          lease_until: string
+          size_bytes: number
+          source: string
+          state?: string
+          try_number: number
+        }
+        Update: {
+          actor?: string
+          attempts?: number
+          claimed_actor?: string | null
+          completed_at?: string | null
+          content_sha256?: string
+          created_at?: string
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          job_id?: string
+          lease_until?: string
+          size_bytes?: number
+          source?: string
+          state?: string
+          try_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_requests_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_requests_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_feed"
+            referencedColumns: ["job_id"]
+          },
+        ]
+      }
+      email_outbox: {
+        Row: {
+          attempts: number
+          created_at: string
+          id: string
+          job_id: string
+          lang: string
+          last_error: string | null
+          next_attempt_at: string
+          status: string
+          template: string
+          try_number: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          id?: string
+          job_id: string
+          lang?: string
+          last_error?: string | null
+          next_attempt_at?: string
+          status: string
+          template: string
+          try_number: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          id?: string
+          job_id?: string
+          lang?: string
+          last_error?: string | null
+          next_attempt_at?: string
+          status?: string
+          template?: string
+          try_number?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_outbox_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_outbox_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_feed"
+            referencedColumns: ["job_id"]
+          },
+        ]
+      }
       job_events: {
         Row: {
           created_at: string
@@ -937,6 +1120,16 @@ export type Database = {
         Args: { _id: string; _note?: string }
         Returns: undefined
       }
+      claim_delivery_nonce: { Args: { _nonce: string }; Returns: boolean }
+      complete_delivery: {
+        Args: {
+          _email_status: string
+          _file_name: string
+          _file_path: string
+          _request_id: string
+        }
+        Returns: string
+      }
       create_job: {
         Args: {
           _business_type: string
@@ -973,6 +1166,18 @@ export type Database = {
       request_revision: {
         Args: { _job_id: string; _reason: string }
         Returns: undefined
+      }
+      reserve_delivery: {
+        Args: {
+          _actor: string
+          _claimed_actor: string
+          _job_id: string
+          _sha: string
+          _size: number
+          _source: string
+          _try_number: number
+        }
+        Returns: Json
       }
       set_job_status: {
         Args: { _job_id: string; _message: string; _status: string }
