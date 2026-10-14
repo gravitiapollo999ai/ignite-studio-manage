@@ -88,3 +88,17 @@ export async function exactRange(url: string, offset: number, length: number, to
   return b;
 }
 
+
+export type SourceStatus = "measured_ok" | "measured_too_long" | "unknown_duration" | "rejected_media";
+
+/** True when the first box is an ISO-BMFF ftyp (MP4/MOV family). */
+export function hasFtyp(head: Uint8Array): boolean {
+  return head.length >= 8 && head[4] === 0x66 && head[5] === 0x74 && head[6] === 0x79 && head[7] === 0x70;
+}
+
+/** Classifies a source from its first bytes and the (possibly null) header duration. Never invents a duration. */
+export function classifySource(head: Uint8Array, seconds: number | null): { status: SourceStatus } {
+  if (!hasFtyp(head)) return { status: "rejected_media" };
+  if (seconds == null || !Number.isFinite(seconds) || seconds <= 0) return { status: "unknown_duration" };
+  return { status: isSourceTooLong(seconds) ? "measured_too_long" : "measured_ok" };
+}
