@@ -896,6 +896,19 @@ export type Database = {
         Args: { _job_id: string }
         Returns: undefined
       }
+      apply_spoofer_callback: {
+        Args: {
+          _event_id: string
+          _file_name: string
+          _file_path: string
+          _job_id: string
+          _message: string
+          _remote_job_id: string
+          _status: string
+          _try_number: number
+        }
+        Returns: string
+      }
       approve_credit_request: {
         Args: { _id: string; _note?: string }
         Returns: undefined
@@ -945,6 +958,7 @@ export type Database = {
         Args: { _grant: boolean; _role: string; _user_id: string }
         Returns: undefined
       }
+      spoofer_status_rank: { Args: { _s: string }; Returns: number }
     }
     Enums: {
       app_role: "admin" | "client" | "manager"

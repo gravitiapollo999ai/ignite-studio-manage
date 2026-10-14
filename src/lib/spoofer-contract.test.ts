@@ -32,3 +32,38 @@ describe("spoofer sync contract", () => {
     expect(redact("failed with key s3cr3t", ["s3cr3t"])).toBe("failed with key [redacted]");
   });
 });
+
+import { decideCallback } from "./spoofer-contract";
+describe("monotonic callbacks (same attempt)", () => {
+  it("advances forward in order", () => {
+    expect(decideCallback("submitted", "in_review", 1)).toBe("applied");
+    expect(decideCallback("in_review", "generating", 1)).toBe("applied");
+    expect(decideCallback("generating", "qa", 1)).toBe("applied");
+    expect(decideCallback("qa", "delivered", 1)).toBe("applied");
+  });
+  it("allows skipping ahead (out-of-order arrival of a later status)", () => {
+    expect(decideCallback("submitted", "qa", 1)).toBe("applied");
+  });
+  it("ignores stale/out-of-order older statuses", () => {
+    expect(decideCallback("qa", "in_review", 1)).toBe("stale");
+    expect(decideCallback("generating", "in_review", 1)).toBe("stale");
+  });
+  it("same status is a no-op", () => {
+    expect(decideCallback("generating", "generating", 1)).toBe("noop");
+  });
+  it("Delivered is terminal for the attempt", () => {
+    expect(decideCallback("delivered", "in_review", 1)).toBe("terminal");
+    expect(decideCallback("delivered", "delivered", 1)).toBe("terminal");
+  });
+  it("cancelled jobs accept nothing", () => {
+    expect(decideCallback("cancelled", "qa", 1)).toBe("terminal");
+  });
+  it("never infers a retry from an old or unknown attempt", () => {
+    expect(decideCallback("revision", "in_review", 2, 1)).toBe("attempt_mismatch");
+    expect(decideCallback("delivered", "in_review", 1, 2)).toBe("attempt_mismatch");
+  });
+  it("a Studio-established revision (try 2) restarts the ladder", () => {
+    expect(decideCallback("revision", "in_review", 2, 2)).toBe("applied");
+    expect(decideCallback("revision", "in_review", 2)).toBe("applied");
+  });
+});

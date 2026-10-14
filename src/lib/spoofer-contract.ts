@@ -55,3 +55,17 @@ export function redact(text: string, secrets: Array<string | undefined>): string
   for (const s of secrets) if (s) out = out.split(s).join("[redacted]");
   return out.slice(0, 1000);
 }
+
+/** Same ranking as SQL public.spoofer_status_rank — keep in sync. */
+export const STATUS_RANK: Record<string, number> = { submitted: 0, revision: 0, in_review: 1, prompt_ready: 2, generating: 3, qa: 4, delivered: 5, cancelled: 99 };
+
+export type CallbackDecision = "applied" | "noop" | "stale" | "terminal" | "attempt_mismatch";
+
+/** Pure mirror of apply_spoofer_callback's acceptance rule (the DB function is the atomic authority). */
+export function decideCallback(current: string, next: string, jobTry: number, callbackTry?: number | null): CallbackDecision {
+  if (callbackTry != null && callbackTry !== jobTry) return "attempt_mismatch";
+  const cur = STATUS_RANK[current] ?? 0, nxt = STATUS_RANK[next];
+  if (cur >= 5) return "terminal";
+  if (nxt < cur) return "stale";
+  return nxt > cur ? "applied" : "noop";
+}
