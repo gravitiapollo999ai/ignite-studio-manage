@@ -1,20 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { isSourceTooLong, readMp4Duration } from "./mp4-duration";
-
-const RANGE_TIMEOUT_MS = 10_000;
-
-/** Exact ranged read: must be 206 with a matching Content-Range and byte count, else throws (→ unverified). */
-export async function exactRange(url: string, offset: number, length: number, total: number, fetchImpl: typeof fetch = fetch): Promise<Uint8Array> {
-  const end = Math.min(total - 1, offset + length - 1);
-  const r = await fetchImpl(url, { headers: { Range: `bytes=${offset}-${end}` }, signal: AbortSignal.timeout(RANGE_TIMEOUT_MS) });
-  if (r.status !== 206) { await r.body?.cancel(); throw new Error("range_unsupported"); }
-  if ((r.headers.get("content-range") ?? "") !== `bytes ${offset}-${end}/${total}`) { await r.body?.cancel(); throw new Error("range_mismatch"); }
-  const b = new Uint8Array(await r.arrayBuffer());
-  if (b.length !== end - offset + 1) throw new Error("range_length");
-  return b;
-}
+import { RANGE_TIMEOUT_MS, exactRange, isSourceTooLong, readMp4Duration } from "./mp4-duration";
 
 /** Measures an uploaded source video's container duration from its header and records the trusted result. */
 export const verifySourceVideo = createServerFn({ method: "POST" })

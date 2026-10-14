@@ -62,3 +62,12 @@ describe("mp4 header hardening", () => {
     expect(await rmd(async (o, l) => moov.slice(o, o + Math.max(0, l - 1)), moov.length)).toBeNull();
   });
 });
+
+import { exactRange } from "./mp4-duration";
+describe("exact ranged reads", () => {
+  const f = (status: number, range: string, n: number) => (async () => new Response(new Uint8Array(n), { status, headers: { "content-range": range } })) as unknown as typeof fetch;
+  it("accepts exact 206 + matching content-range + byte count", async () => expect((await exactRange("u", 0, 16, 100, f(206, "bytes 0-15/100", 16))).length).toBe(16));
+  it("rejects 200 full-body responses", async () => { await expect(exactRange("u", 0, 16, 100, f(200, "", 100))).rejects.toThrow(); });
+  it("rejects mismatched content-range", async () => { await expect(exactRange("u", 0, 16, 100, f(206, "bytes 0-15/999", 16))).rejects.toThrow(); });
+  it("rejects short bodies", async () => { await expect(exactRange("u", 0, 16, 100, f(206, "bytes 0-15/100", 10))).rejects.toThrow(); });
+});

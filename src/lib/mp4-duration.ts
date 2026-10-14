@@ -74,3 +74,17 @@ export async function readMp4Duration(read: RangeReader, fileSize: number): Prom
   }
   return null;
 }
+
+export const RANGE_TIMEOUT_MS = 10_000;
+
+/** Exact ranged read: must be 206 with a matching Content-Range and byte count, else throws (→ unverified). */
+export async function exactRange(url: string, offset: number, length: number, total: number, fetchImpl: typeof fetch = fetch): Promise<Uint8Array> {
+  const end = Math.min(total - 1, offset + length - 1);
+  const r = await fetchImpl(url, { headers: { Range: `bytes=${offset}-${end}` }, signal: AbortSignal.timeout(RANGE_TIMEOUT_MS) });
+  if (r.status !== 206) { await r.body?.cancel(); throw new Error("range_unsupported"); }
+  if ((r.headers.get("content-range") ?? "") !== `bytes ${offset}-${end}/${total}`) { await r.body?.cancel(); throw new Error("range_mismatch"); }
+  const b = new Uint8Array(await r.arrayBuffer());
+  if (b.length !== end - offset + 1) throw new Error("range_length");
+  return b;
+}
+
