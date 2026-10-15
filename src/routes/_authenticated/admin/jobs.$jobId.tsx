@@ -120,13 +120,6 @@ function AdminJob() {
     const x = m[r] ?? ["Could not save the final (" + r + ")", "No se pudo guardar el final (" + r + ")"];
     return t(x[0], x[1]);
   }
-  async function removeFile(id: string, path: string) {
-    await supabase.storage.from("deliverables").remove([path]);
-    const { error } = await supabase.from("deliverables").delete().eq("id", id);
-    if (error) return toast.error(errMsg(error));
-    toast.success(t("File removed", "Archivo eliminado"));
-    qc.invalidateQueries({ queryKey: ["admin-deliv", jobId] });
-  }
   async function doRefund() {
     const n = Number(refund);
     if (!Number.isInteger(n) || n <= 0) return toast.error(t("Enter a positive whole number", "Ingresa un número entero positivo"));
