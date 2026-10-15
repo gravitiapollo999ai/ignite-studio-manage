@@ -1,4 +1,4 @@
-import { isRestrictedReason } from "./segment-reasons";
+import { isRestrictedReason, parseSegmentReason } from "./segment-reasons";
 // Pure, browser-safe helpers for the Studio ⇄ Spoofer sync contract (tested in spoofer-contract.test.ts).
 
 export const SPOOFER_DEFAULT_BASE_URL = "https://spoofer-suite.lovable.app";
@@ -84,8 +84,10 @@ export function shouldHoldForSegment(reason: string | null | undefined, transpor
 
 /** Hold decision in trusted server code (flag read from env by the caller). Flag OFF: every restricted job held.
  *  Flag ON: restricted link jobs without verified uploaded source bytes stay held until a source is attached. */
-export function linkHoldReason(job: { segment_reason: string | null; source_type: string | null; source_sha256: string | null } | null, transportOn: boolean): "segment_transport_off" | "link_needs_upload" | null {
-  if (!job || !isSegmentRestricted(job.segment_reason)) return null;
+export function linkHoldReason(job: { segment_reason: string | null; source_type: string | null; source_sha256: string | null } | null, transportOn: boolean): "segment_transport_off" | "link_needs_upload" | "invalid_segment_reason" | null {
+  if (!job) return null;
+  if (parseSegmentReason(job.segment_reason) === "invalid") return "invalid_segment_reason";
+  if (!isSegmentRestricted(job.segment_reason)) return null;
   if (!transportOn) return "segment_transport_off";
   if (!job.source_sha256) return "link_needs_upload";
   return null;

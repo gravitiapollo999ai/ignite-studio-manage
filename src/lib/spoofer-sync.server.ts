@@ -26,6 +26,8 @@ async function sign(admin: Admin, bucket: string, path: string | null) {
 export async function buildPayload(admin: Admin, jobId: string) {
   const { data: j } = await admin.from("jobs").select("*").eq("id", jobId).maybeSingle();
   if (!j) throw new Error("Job not found");
+  // Fail closed: an unknown reason is never sent (and never downgraded to "no segment").
+  if (parseSegmentReason(j.segment_reason) === "invalid") throw new Error("invalid_segment_reason");
   const { data: p } = await admin.from("profiles").select("full_name,email,company").eq("id", j.user_id).maybeSingle();
   const files = [
     j.source_file_path && { kind: "source_video", sha256: j.source_sha256 ?? null, file_name: j.source_file_path.split("/").pop(), url: await sign(admin, "source-videos", j.source_file_path) },
@@ -44,7 +46,7 @@ export async function buildPayload(admin: Admin, jobId: string) {
       // Enforced production segment (additive; receivers that ignore unknown fields are unaffected). Only sent when the
       // Spoofer receiver is confirmed tolerant: SPOOFER_SEGMENT_FIELDS=on (non-secret config).
       source_sha256: j.source_file_path ? (j.source_sha256 ?? null) : null,
-      ...(process.env["SPOOFER_SEGMENT_FIELDS"] === "on" ? { segment_start_seconds: j.segment_start_seconds, segment_end_seconds: j.segment_end_seconds, segment_reason: parseSegmentReason(j.segment_reason) === "invalid" ? null : j.segment_reason } : {}),
+      ...(process.env["SPOOFER_SEGMENT_FIELDS"] === "on" ? { segment_start_seconds: j.segment_start_seconds, segment_end_seconds: j.segment_end_seconds, segment_reason: j.segment_reason } : {}),
     },
     // Content fingerprint of the exact uploaded source bytes (always sent, additive). null = link or legacy row: never "verified".
     source_sha256: j.source_file_path ? (j.source_sha256 ?? null) : null,

@@ -532,11 +532,16 @@ export type Database = {
       }
       final_upload_reservations: {
         Row: {
+          cleaned_at: string | null
           committed_at: string | null
           created_at: string
           expires_at: string
           id: string
           job_id: string
+          obj_etag: string | null
+          obj_sha256: string | null
+          obj_size: number | null
+          obj_updated_at: string | null
           path: string
           reject_reason: string | null
           status: string
@@ -545,11 +550,16 @@ export type Database = {
           uploader: string
         }
         Insert: {
+          cleaned_at?: string | null
           committed_at?: string | null
           created_at?: string
           expires_at?: string
           id?: string
           job_id: string
+          obj_etag?: string | null
+          obj_sha256?: string | null
+          obj_size?: number | null
+          obj_updated_at?: string | null
           path: string
           reject_reason?: string | null
           status?: string
@@ -558,11 +568,16 @@ export type Database = {
           uploader: string
         }
         Update: {
+          cleaned_at?: string | null
           committed_at?: string | null
           created_at?: string
           expires_at?: string
           id?: string
           job_id?: string
+          obj_etag?: string | null
+          obj_sha256?: string | null
+          obj_size?: number | null
+          obj_updated_at?: string | null
           path?: string
           reject_reason?: string | null
           status?: string
@@ -1360,10 +1375,12 @@ export type Database = {
         Args: { _id: string; _note?: string }
         Returns: undefined
       }
-      attach_job_source: {
-        Args: { _job_id: string; _path: string }
-        Returns: string
-      }
+      attach_job_source:
+        | { Args: { _job_id: string; _path: string }; Returns: string }
+        | {
+            Args: { _expected_try: number; _job_id: string; _path: string }
+            Returns: string
+          }
       claim_delivery_nonce: { Args: { _nonce: string }; Returns: boolean }
       claim_email_outbox: {
         Args: { _job_id?: string; _limit: number }
@@ -1381,6 +1398,10 @@ export type Database = {
       claim_final_commit: {
         Args: { _reservation_id: string; _token: string; _uploader: string }
         Returns: Json
+      }
+      cleanup_rejected_final: {
+        Args: { _reservation_id: string }
+        Returns: string
       }
       commit_final_upload: {
         Args: {
