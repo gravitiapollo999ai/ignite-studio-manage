@@ -38,17 +38,31 @@ Intake/payload, the `deliver-video` validator, the jobs feed, the AI draft heade
   - `final_upload_reservations` table (job_id, try_number, path, token, status, expires_at), with grants and staff-read RLS.
   - `reserve_final_upload(job_id, try_number)` (security definer, `is_admin`): locks the job. Admits only status `generating`, `qa` or `revision`, and always refuses `delivered`/`cancelled`. Refuses a stale attempt (≠ current `try_number`) and restricted jobs (no trim evidence exists, so they stay HELD). Returns a fenced path `<job>/try<n>/<reservation uuid>/final.mp4` and a token.
   - `commit_final_upload(reservation_id, token, sha256, size, duration)`: only callable by service_role.
-- Server function `commitFinalUpload` (authenticated, admin): downloads the stored object server-side and streams SHA-256. It checks the actual size against the caps, then runs the safe `probeMp4` check (structural; duration ≤ 30.05 s or the segment span). Only then does it call `commit_final_upload` with its own computed values; browser-supplied size or hash is ignored. The RPC locks the job, rechecks status, attempt, restriction, token and expiry, then inserts the deliverable. On any failure, the reservation becomes `rejected` and the server removes the orphan object at that fenced path only.
+- Server function `commitFinalUpload` (authenticated, admin):
+  - It first locks the reservation (`claim_final_commit`, status `uploaded` → `committing`), so a reservation can be committed only once.
+  - It reads the exact stored object with the service client and records its identity (etag/version, updated_at, size). It streams SHA-256 and checks the actual size against the caps.
+  - It runs `probeMp4`. A final must be `measured` with duration ≤ 30.05 s, or within the segment span. `unknown_declared`, `malformed` and `io_error` are rejected; an unmeasured final length is never accepted.
+  - It then re-reads the object identity. If anything changed since hashing, the commit is rejected as a TOCTOU failure.
+  - It calls `commit_final_upload` with only these server-computed values; browser-supplied size or hash is ignored. The RPC locks the job and the reservation, rechecks status, attempt, restriction, token, expiry and identity, then inserts the deliverable with `sha256` and `size_bytes`.
+  - On any failure, the reservation becomes `rejected`. Trusted service code then removes that reservation-owned, uncommitted object only.
 - Earlier finals are never overwritten or deleted by this flow (`upsert:false`). JOB-000002 is delivered, so it is refused at reserve.
 - The new admin UI flow is reserve → upload → commit. Disabling the button is a convenience only.
-- Stage B enforcement migration `0016_final_upload_enforcement.sql` runs separately, only after the new Studio UI is published and checked (correction E). It revokes direct `insert` on `deliverables` from authenticated (commit goes via service_role). It replaces the "deliv admin insert" policy and makes `deliv admin delete` refuse delivered jobs' finals. It limits `deliverables` storage inserts to paths with a live reservation.
+- Stage B enforcement migration `0016_final_upload_enforcement.sql` is not applied during the build. It runs only after the new Studio UI is published and checked (correction E).
+  - Table: revoke direct `insert`/`delete` on `public.deliverables` from authenticated (commit goes via service_role), and drop "deliv admin insert" and "deliv admin delete".
+  - Storage: today the policies "admin storage insert", "admin storage update" and "admin storage delete" (0000_migration.sql lines 350–355) cover both `deliverables` and `branding`. Stage B splits them:
+    - `branding`: insert, update and delete for admins are recreated unchanged.
+    - `deliverables` UPDATE: no policy, so overwrite and replace are denied to every client.
+    - `deliverables` INSERT: admin only, and only when the path equals a live `reserved` reservation (not expired, uploader = auth.uid()). Since UPDATE is denied, `upsert` cannot replace the object.
+    - `deliverables` DELETE: no client policy. Committed or delivered finals cannot be removed. Only trusted service code may delete a reservation-owned uncommitted orphan.
+  - The current admin "remove file" button is changed in the new UI to a server function that refuses committed finals.
 
 ### 7. Verification and release
 Tests (`bunx vitest run`, after approval):
 - `segment-reasons.test.ts`: the canonical table; unknown never becomes measured.
 - `spoofer-contract.test.ts`: `source_sha256` is present for uploads and `null` for links/legacy; segment fields only appear when the flag is on.
-- `final-upload.test.ts` (pure admission/validation logic): status matrix including generating/qa/revision admitted and delivered/cancelled refused, stale try, restricted refused, size/hash computed server-side.
-- `scripts/final-upload-db-race.ts`: only on JOB-000004 (92372d5b-bb4f-4633-8e18-b3d5a862857b), with a fixture-label assertion (correction F). It first reads and records the job's current state, deliverables and reservations, then runs the races: stale try, attempt bump mid-upload, status flip to delivered mid-upload, expired token, double commit. Afterwards it restores only the synthetic fields and artifacts it created and asserts the snapshot matches. If JOB-000004's state does not allow a case (it is Delivered), that case is reported as a prerequisite instead of creating new fixtures or accounts.
+- `final-upload.test.ts` (pure admission/validation logic): status matrix (generating/qa/revision admitted, delivered/cancelled refused), stale try, restricted refused, unknown/malformed/unmeasured length refused, size/hash computed server-side, identity change between hash and commit refused.
+- `scripts/final-upload-db-race.ts`: only on JOB-000004 (92372d5b-bb4f-4633-8e18-b3d5a862857b), with a fixture-label assertion (correction F). It first reads and records the job's current state, deliverables and reservations. Races covered: stale try, attempt bump mid-upload, status flip to delivered mid-upload, expired token, double commit, and object replaced after hashing but before commit (TOCTOU). Afterwards it restores only the synthetic fields and artifacts it created and asserts the snapshot matches. If JOB-000004's state does not allow a case (it is Delivered), that case is reported as a prerequisite instead of creating new fixtures or accounts.
+- `scripts/storage-policy-check.ts` runs after Stage B only, as the existing admin session against JOB-000004 paths. It checks that these are refused: deliverables update/upsert overwrite; insert outside a reservation; delete of a committed final; direct `deliverables` row insert/delete. It checks that these still work: branding upload, update and delete; and a reserved insert.
 - Existing suites: mp4-duration, post-review, delivery-contract, private-video-player, eta, ai-helper.
 
 Staged release (all segment/delivery flags OFF throughout; no publish without captain OK):
@@ -59,7 +73,7 @@ Staged release (all segment/delivery flags OFF throughout; no publish without ca
 3. Joint old/new compatibility check (old Studio payload -> new Spoofer; new payload -> old shape tolerated)
 4. Studio publishes (new reserve/commit UI live)
 5. Admin live checks: upload, link-needs-upload panel, measured_short, first-30 held, player/download
-6. Stage B enforcement migration applied, then re-check admin upload
+6. Stage B enforcement migration applied (captain OK), then storage-policy-check + re-check admin upload and branding logo
 7. Owner-client checks only with an existing client session; else reported UNTESTED (admin view != owner proof)
 ```
 
