@@ -28,3 +28,9 @@ describe("link hold (trusted server flag)", () => {
   it("flag on releases once a verified source is attached", () => expect(linkHoldReason({ ...link, source_sha256: "a".repeat(64) }, true)).toBeNull());
   it("measured_short is never held", () => expect(linkHoldReason({ ...link, segment_reason: "measured_short" }, false)).toBeNull());
 });
+
+describe("invalid reason hold", () => {
+  it("holds unknown reasons regardless of the flag", () => {
+    expect(linkHoldReason({ segment_reason: "bogus", source_type: "upload", source_sha256: "a".repeat(64) }, true)).toBe("invalid_segment_reason");
+  });
+});

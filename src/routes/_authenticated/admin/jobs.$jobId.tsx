@@ -207,7 +207,7 @@ function AdminJob() {
               </div>
               {files.data?.length === 0 ? <Empty title={t("No deliverables yet", "Aún no hay entregables")} /> : <div className="divide-y divide-border">{files.data?.map((f) => (
                 <div key={f.id} className="flex items-center justify-between py-2 text-sm"><span>{f.file_name} <span className="text-muted-foreground">· {t("try", "intento")} {f.try_number}</span></span>
-                  <span className="flex gap-1"><Button size="sm" variant="ghost" onClick={() => open("deliverables", f.file_path)}>{t("Open", "Abrir")}</Button><Button size="sm" variant="ghost" disabled={!!f.sha256 || j.status === "delivered"} onClick={() => removeFile(f.id, f.file_path)}>{t("Remove", "Eliminar")}</Button></span></div>
+                  <span className="flex gap-1"><Button size="sm" variant="ghost" onClick={() => open("deliverables", f.file_path)}>{t("Open", "Abrir")}</Button><span className="inline-flex items-center gap-1 px-2 text-xs text-muted-foreground" title={t("Saved finals are locked", "Los finales guardados están bloqueados")}><Lock className="h-3 w-3" />{t("Locked", "Bloqueado")}</span></span></div>
               ))}</div>}
             </CardContent>
           </Card>
