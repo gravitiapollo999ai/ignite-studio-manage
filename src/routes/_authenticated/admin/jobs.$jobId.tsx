@@ -62,6 +62,9 @@ function AdminJob() {
 
   useEffect(() => { if (job.data) { setStatus(job.data.status); setUploadTry(String(job.data.try_number)); } }, [job.data]);
   useEffect(() => { setPrompt(internal.data?.internal_prompt ?? ""); setInotes(internal.data?.internal_notes ?? ""); }, [internal.data]);
+  // Hooks must run before any conditional return (React #310 on cold load otherwise).
+  const reserveFn = useServerFn(reserveFinalUpload);
+  const commitFn = useServerFn(commitFinalUpload);
 
   if (job.isLoading) return <Skeleton className="h-96" />;
   const j = job.data;
@@ -84,8 +87,6 @@ function AdminJob() {
     toast.success(t("Internal prompt saved", "Prompt interno guardado"));
     qc.invalidateQueries({ queryKey: ["job-internal", jobId] });
   }
-  const reserveFn = useServerFn(reserveFinalUpload);
-  const commitFn = useServerFn(commitFinalUpload);
   async function upload(list: FileList | null) {
     if (!list?.length) return;
     setBusy("upload");
