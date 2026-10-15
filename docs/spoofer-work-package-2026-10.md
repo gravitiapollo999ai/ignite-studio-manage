@@ -27,3 +27,8 @@ Consequence: segment-restricted jobs (explicit or first-30) **cannot be proven t
 | old intake → new Spoofer / new intake → old Spoofer | accepted; Studio flag OFF ⇒ restricted jobs held, never sent |
 | flags OFF | zero HMAC sends; held jobs show reason |
 Publish order: Spoofer (flags OFF) → Studio (SPOOFER_SEGMENT_FIELDS off) → admin then owner live checks → flags ON only for allowlisted fixture after captain OK.
+
+## Batch 1792032883 additions (Studio side done)
+- Payload now always carries `source_sha256` (top-level, `brief.source_sha256`, and `files[source_video].sha256`); `null` for links/legacy — never treat as verified.
+- Canonical reasons: `contracts/segment-reasons.json` (paste verbatim into Spoofer contract test).
+- Flags ON: restricted link jobs stay `held_segment` / `link_needs_upload` until a verified MP4 is attached.
