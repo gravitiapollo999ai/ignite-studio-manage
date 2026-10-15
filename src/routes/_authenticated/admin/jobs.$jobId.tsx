@@ -167,6 +167,7 @@ function AdminJob() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
+          {j && <LinkSourceUpload job={j} queryKey={["admin-job", jobId]} />}
           <SpooferSyncCard jobId={jobId} />
           <Card><CardHeader><CardTitle>{t("Estimated ready time", "Tiempo estimado")}</CardTitle></CardHeader><CardContent className="space-y-4"><JobEta jobId={jobId} /><JobEtaOverride jobId={jobId} /></CardContent></Card>
           <Card className="border-primary/40">
