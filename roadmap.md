@@ -27,3 +27,9 @@
 - [ ] Spoofer sender/flag/receiver changes — blocked: applied in Spoofer editor
 - [ ] Coordinated publish + live checks — blocked: captain release gate
 - [ ] Email sending — on hold: owned email domain
+
+## Publish request (captain, 2026-10-15)
+- [ ] Retry live DeepSeek key check (first attempt timed out)
+- [ ] Security scan before publish
+- [ ] Publish Studio with SPOOFER_SEGMENT_FIELDS off
+- [ ] Spoofer work package still pending in Spoofer editor (blocker: flags ON + live segment tests)
