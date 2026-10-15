@@ -43,5 +43,6 @@
 - [x] 7 unit tests (140 pass)
 - [ ] Stage B lockdown — blocked: apply after new UI published (captain OK)
 - [ ] DB race script on JOB-000004 — blocked: JOB-000004 is Delivered, only refusal cases runnable
+- [x] Post-build repair: safe commit cleanup, expiry recheck, invalid reason held, try-bound attach, finals locked
 - [ ] Publish — blocked: captain OK; Spoofer first only after captain OK (Spoofer first)
 - [ ] 4 + thumbnail: Spoofer editor only
