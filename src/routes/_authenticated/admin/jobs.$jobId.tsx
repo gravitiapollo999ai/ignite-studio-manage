@@ -23,6 +23,7 @@ import { useI18n } from "@/lib/i18n";
 import { SpooferSyncCard } from "@/components/spoofer-sync-card";
 import { DraftPromptButton } from "@/components/ai-helper";
 import { JobEta, JobEtaOverride } from "@/components/job-eta";
+import { LinkSourceUpload } from "@/components/link-source-upload";
 
 export const Route = createFileRoute("/_authenticated/admin/jobs/$jobId")({
   head: ({ matches }) => ({ meta: [{ title: brandTitle(matches, "Admin · Job") }] }),

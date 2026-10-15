@@ -1,3 +1,4 @@
+import { parseSegmentReason } from "./segment-reasons";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -74,6 +75,6 @@ export const aiDraftPrompt = createServerFn({ method: "POST" })
     });
     if (!r.ok) return { ok: false as const, reason: r.reason };
     if (!durationFitsSegment(r.data.duration_seconds, Number(segStart), Number(segEnd))) return { ok: false as const, reason: "invalid_output" as const };
-    const text = `[DRAFT — needs captain gate · ${DEEPSEEK_MODEL}] ${j.code} · try ${j.try_number} · segment ${segStart}–${segEnd}s (${j.segment_reason ?? "unspecified"})\nTiming not analysed from media: no source analysis was supplied.\n${r.data.prompt}\n\nNegative: ${r.data.negative_prompt}\nShots:\n${(r.data.shot_notes ?? []).map((s) => `- ${s}`).join("\n")}\nDuration: ${r.data.duration_seconds}s\nInputs on file: source video + subject reference image (paired; not sent to the AI).`;
+    const text = `[DRAFT — needs captain gate · ${DEEPSEEK_MODEL}] ${j.code} · try ${j.try_number} · segment ${segStart}–${segEnd}s (${parseSegmentReason(j.segment_reason)})\nTiming not analysed from media: no source analysis was supplied.\n${r.data.prompt}\n\nNegative: ${r.data.negative_prompt}\nShots:\n${(r.data.shot_notes ?? []).map((s) => `- ${s}`).join("\n")}\nDuration: ${r.data.duration_seconds}s\nInputs on file: source video + subject reference image (paired; not sent to the AI).`;
     return { ok: true as const, draft: text };
   });
