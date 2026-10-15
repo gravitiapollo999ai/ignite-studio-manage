@@ -1,3 +1,4 @@
+import { isRestrictedReason } from "./segment-reasons";
 // Pure, runtime-neutral helpers for POST /api/public/deliver-video (tested in delivery-contract.test.ts).
 // Uses Web Crypto only, so it runs on Cloudflare Workers and in vitest.
 
@@ -184,7 +185,7 @@ export type EvidenceVerdict = "not_required" | "ok" | "evidence_required" | "sou
 
 /** Restricted jobs need evidence bound to the exact Studio source bytes, segment, attempt and final file. Never inferred from duration. */
 export function checkTrimEvidence(job: EvidenceJob, ev: TrimEvidence | null, final: { sha256: string; size: number; tryNumber: number }): EvidenceVerdict {
-  if (job.segment_reason == null || job.segment_reason === "measured_short") return "not_required";
+  if (!isRestrictedReason(job.segment_reason)) return "not_required";
   if (!ev) return "evidence_required";
   if (!job.source_sha256) return "source_unverifiable"; // links: no Studio-held bytes to bind to → stays in review
   const s = Number(job.segment_start_seconds), e = Number(job.segment_end_seconds);
@@ -197,7 +198,7 @@ export function checkTrimEvidence(job: EvidenceJob, ev: TrimEvidence | null, fin
 
 /** Final must not exceed the segment span (+ container rounding). */
 export function finalWithinSegment(finalSeconds: number, job: EvidenceJob): boolean {
-  const span = job.segment_reason && job.segment_reason !== "measured_short" ? Number(job.segment_end_seconds) - Number(job.segment_start_seconds) : 30;
+  const span = isRestrictedReason(job.segment_reason) ? Number(job.segment_end_seconds) - Number(job.segment_start_seconds) : 30;
   return Number.isFinite(finalSeconds) && finalSeconds > 0 && finalSeconds <= span + 0.05;
 }
 

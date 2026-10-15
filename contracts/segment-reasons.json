@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "reasons": [
+    { "reason": "measured_short", "restricted": false, "en": "Whole clip (measured ≤30 s)", "es": "Clip completo (medido ≤30 s)" },
+    { "reason": "explicit", "restricted": true, "en": "Chosen segment", "es": "Segmento elegido" },
+    { "reason": "auto_first_30", "restricted": true, "en": "First 30 seconds only", "es": "Solo los primeros 30 segundos" },
+    { "reason": "auto_first_30_unknown_length", "restricted": true, "en": "First 30 seconds only (length unreadable)", "es": "Solo los primeros 30 segundos (duración no legible)" }
+  ]
+}

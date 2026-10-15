@@ -17,6 +17,8 @@ import { PrivateVideoPlayer } from "@/components/private-video-player";
 import { JobEta } from "@/components/job-eta";
 import { brandTitle, errMsg, signedUrl } from "@/lib/data";
 import { useI18n } from "@/lib/i18n";
+import { isRestrictedReason, segmentReasonLabel } from "@/lib/segment-reasons";
+import { LinkSourceUpload } from "@/components/link-source-upload";
 import { SOURCE_LABELS, formatMmSs, type SourceType } from "@/lib/pricing";
 
 export const Route = createFileRoute("/_authenticated/jobs/$jobId")({
@@ -92,11 +94,12 @@ function JobDetail() {
         </CardContent>
       </Card>
       <Card><CardHeader><CardTitle>{t("Order details", "Detalles del pedido")}</CardTitle></CardHeader><CardContent>
-        <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
+        <LinkSourceUpload job={j} queryKey={["job", jobId]} />
+        <dl className="mt-3 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
           <Row k={t("Source", "Fuente")} v={sourceLabels[j.source_type as SourceType]} />
           {j.source_url && <Row k={t("Link", "Enlace")} v={<a href={j.source_url} target="_blank" rel="noreferrer" className="break-all text-primary">{j.source_url}</a>} />}
           {(j.clip_start != null || j.clip_end != null) && <Row k={t("Clip", "Clip")} v={`${formatMmSs(j.clip_start) || "0:00"} – ${formatMmSs(j.clip_end) || t("end", "fin")}`} />}
-          {j.segment_reason?.startsWith("auto_first_30") && <Row k={t("Segment used", "Segmento usado")} v={t("First 30 seconds only", "Solo los primeros 30 segundos")} />}
+          {isRestrictedReason(j.segment_reason) && <Row k={t("Segment used", "Segmento usado")} v={segmentReasonLabel(j.segment_reason, lang)} />}
           <Row k={t("Length", "Duración")} v={`${j.target_duration_seconds}s · 1080p`} />
           <Row k={t("Subject", "Sujeto")} v={`${j.subject_name} (${j.subject_type})`} />
           <Row k={t("Business type", "Tipo de negocio")} v={j.business_type ?? "—"} />

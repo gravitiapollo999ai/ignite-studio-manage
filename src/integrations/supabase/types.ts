@@ -288,6 +288,9 @@ export type Database = {
           file_path: string
           id: string
           job_id: string
+          reservation_id: string | null
+          sha256: string | null
+          size_bytes: number | null
           try_number: number
         }
         Insert: {
@@ -296,6 +299,9 @@ export type Database = {
           file_path: string
           id?: string
           job_id: string
+          reservation_id?: string | null
+          sha256?: string | null
+          size_bytes?: number | null
           try_number?: number
         }
         Update: {
@@ -304,6 +310,9 @@ export type Database = {
           file_path?: string
           id?: string
           job_id?: string
+          reservation_id?: string | null
+          sha256?: string | null
+          size_bytes?: number | null
           try_number?: number
         }
         Relationships: [
@@ -514,6 +523,63 @@ export type Database = {
           },
           {
             foreignKeyName: "email_outbox_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_feed"
+            referencedColumns: ["job_id"]
+          },
+        ]
+      }
+      final_upload_reservations: {
+        Row: {
+          committed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          job_id: string
+          path: string
+          reject_reason: string | null
+          status: string
+          token: string
+          try_number: number
+          uploader: string
+        }
+        Insert: {
+          committed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          job_id: string
+          path: string
+          reject_reason?: string | null
+          status?: string
+          token?: string
+          try_number: number
+          uploader: string
+        }
+        Update: {
+          committed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          job_id?: string
+          path?: string
+          reject_reason?: string | null
+          status?: string
+          token?: string
+          try_number?: number
+          uploader?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "final_upload_reservations_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "final_upload_reservations_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs_feed"
@@ -1294,6 +1360,10 @@ export type Database = {
         Args: { _id: string; _note?: string }
         Returns: undefined
       }
+      attach_job_source: {
+        Args: { _job_id: string; _path: string }
+        Returns: string
+      }
       claim_delivery_nonce: { Args: { _nonce: string }; Returns: boolean }
       claim_email_outbox: {
         Args: { _job_id?: string; _limit: number }
@@ -1307,6 +1377,21 @@ export type Database = {
           try_number: number
           user_id: string
         }[]
+      }
+      claim_final_commit: {
+        Args: { _reservation_id: string; _token: string; _uploader: string }
+        Returns: Json
+      }
+      commit_final_upload: {
+        Args: {
+          _etag: string
+          _file_name: string
+          _reservation_id: string
+          _sha: string
+          _size: number
+          _updated_at: string
+        }
+        Returns: string
       }
       complete_delivery: {
         Args: {
@@ -1340,6 +1425,11 @@ export type Database = {
         }
         Returns: string
       }
+      final_admission_error: {
+        Args: { _job_id: string; _try: number }
+        Returns: string
+      }
+      final_object_identity: { Args: { _path: string }; Returns: Json }
       finish_email_outbox: {
         Args: {
           _error: string
@@ -1382,6 +1472,10 @@ export type Database = {
         Args: { _id: string; _note: string }
         Returns: undefined
       }
+      reject_final_reservation: {
+        Args: { _reason: string; _reservation_id: string }
+        Returns: string
+      }
       release_held_segment: { Args: { _job_id: string }; Returns: boolean }
       request_revision: {
         Args: { _job_id: string; _reason: string }
@@ -1398,6 +1492,10 @@ export type Database = {
           _source: string
           _try_number: number
         }
+        Returns: Json
+      }
+      reserve_final_upload: {
+        Args: { _job_id: string; _try_number: number }
         Returns: Json
       }
       set_job_eta: {

@@ -33,3 +33,15 @@
 - [ ] Security scan before publish
 - [ ] Publish Studio with SPOOFER_SEGMENT_FIELDS off
 - [ ] Spoofer work package still pending in Spoofer editor (blocker: flags ON + live segment tests)
+
+# Seven-item fix batch (captain 1792032883, approved)
+- [x] 1 source_sha256 in payload
+- [x] 2 canonical segment reasons + shared fixture
+- [x] 3 link jobs need uploaded source (flag ON gate)
+- [x] 5 fixed reason list in UI/validators
+- [x] 6 Stage A reserve/commit final upload (Stage B written, NOT applied)
+- [x] 7 unit tests (140 pass)
+- [ ] Stage B lockdown — blocked: apply after new UI published (captain OK)
+- [ ] DB race script on JOB-000004 — blocked: JOB-000004 is Delivered, only refusal cases runnable
+- [ ] Publish — blocked: captain OK; Spoofer first only after captain OK (Spoofer first)
+- [ ] 4 + thumbnail: Spoofer editor only

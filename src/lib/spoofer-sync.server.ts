@@ -1,5 +1,6 @@
 // Server-only: pushes Studio jobs to Spoofer. Never import from client code.
-import { backoffMinutes, isFinalFailure, redact, shouldHoldForSegment, SPOOFER_CREATE_PATH, SPOOFER_DEFAULT_BASE_URL } from "./spoofer-contract";
+import { parseSegmentReason } from "./segment-reasons";
+import { backoffMinutes, isFinalFailure, linkHoldReason, redact, SPOOFER_CREATE_PATH, SPOOFER_DEFAULT_BASE_URL } from "./spoofer-contract";
 
 const segmentFieldsOn = () => process.env["SPOOFER_SEGMENT_FIELDS"] === "on";
 
@@ -27,7 +28,7 @@ export async function buildPayload(admin: Admin, jobId: string) {
   if (!j) throw new Error("Job not found");
   const { data: p } = await admin.from("profiles").select("full_name,email,company").eq("id", j.user_id).maybeSingle();
   const files = [
-    j.source_file_path && { kind: "source_video", file_name: j.source_file_path.split("/").pop(), url: await sign(admin, "source-videos", j.source_file_path) },
+    j.source_file_path && { kind: "source_video", sha256: j.source_sha256 ?? null, file_name: j.source_file_path.split("/").pop(), url: await sign(admin, "source-videos", j.source_file_path) },
     j.reference_image_path && { kind: "reference_image", file_name: j.reference_image_path.split("/").pop(), url: await sign(admin, "reference-images", j.reference_image_path) },
   ].filter(Boolean);
   return {
@@ -42,8 +43,11 @@ export async function buildPayload(admin: Admin, jobId: string) {
       subject_type: j.subject_type, subject_name: j.subject_name, business_type: j.business_type, notes: j.notes,
       // Enforced production segment (additive; receivers that ignore unknown fields are unaffected). Only sent when the
       // Spoofer receiver is confirmed tolerant: SPOOFER_SEGMENT_FIELDS=on (non-secret config).
-      ...(process.env["SPOOFER_SEGMENT_FIELDS"] === "on" ? { segment_start_seconds: j.segment_start_seconds, segment_end_seconds: j.segment_end_seconds, segment_reason: j.segment_reason } : {}),
+      source_sha256: j.source_file_path ? (j.source_sha256 ?? null) : null,
+      ...(process.env["SPOOFER_SEGMENT_FIELDS"] === "on" ? { segment_start_seconds: j.segment_start_seconds, segment_end_seconds: j.segment_end_seconds, segment_reason: parseSegmentReason(j.segment_reason) === "invalid" ? null : j.segment_reason } : {}),
     },
+    // Content fingerprint of the exact uploaded source bytes (always sent, additive). null = link or legacy row: never "verified".
+    source_sha256: j.source_file_path ? (j.source_sha256 ?? null) : null,
     files, // 24h signed URLs — receiver copies them into Spoofer storage
     created_at: j.created_at,
   };
@@ -57,11 +61,12 @@ export async function pushOne(admin: Admin, jobId: string): Promise<{ ok: boolea
     return { ok: false, error: "Missing secret SPOOFER_SYNC_SECRET" };
   }
   // Segment gate: a restricted job (explicit or auto first-30) must never reach legacy production without its segment.
-  const { data: job } = await admin.from("jobs").select("segment_reason").eq("id", jobId).maybeSingle();
-  if (shouldHoldForSegment(job?.segment_reason ?? null, segmentFieldsOn())) {
-    const { data: held } = await admin.from("spoofer_sync").update({ state: "held_segment", held_reason: "segment_transport_off", updated_at: new Date().toISOString() })
+  const { data: job } = await admin.from("jobs").select("segment_reason, source_type, source_sha256").eq("id", jobId).maybeSingle();
+  const holdReason = linkHoldReason(job ?? null, segmentFieldsOn());
+  if (holdReason) {
+    const { data: held } = await admin.from("spoofer_sync").update({ state: "held_segment", held_reason: holdReason, updated_at: new Date().toISOString() })
       .eq("job_id", jobId).eq("state", "pending").select("job_id").maybeSingle();
-    if (held) await log(admin, { job_id: jobId, direction: "outbound", event: "held_segment", ok: false, message: `segment-restricted (${job?.segment_reason}); transport off` });
+    if (held) await log(admin, { job_id: jobId, direction: "outbound", event: "held_segment", ok: false, message: `segment-restricted (${job?.segment_reason}); ${holdReason}` });
     return { ok: false, error: "held_segment" };
   }
   const { data: claimed } = await admin.from("spoofer_sync").update({ state: "sending", updated_at: new Date().toISOString() })

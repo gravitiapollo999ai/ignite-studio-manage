@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { reserveFinalUpload, commitFinalUpload } from "@/lib/final-upload.functions";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -21,6 +23,7 @@ import { useI18n } from "@/lib/i18n";
 import { SpooferSyncCard } from "@/components/spoofer-sync-card";
 import { DraftPromptButton } from "@/components/ai-helper";
 import { JobEta, JobEtaOverride } from "@/components/job-eta";
+import { LinkSourceUpload } from "@/components/link-source-upload";
 
 export const Route = createFileRoute("/_authenticated/admin/jobs/$jobId")({
   head: ({ matches }) => ({ meta: [{ title: brandTitle(matches, "Admin · Job") }] }),
@@ -81,20 +84,41 @@ function AdminJob() {
     toast.success(t("Internal prompt saved", "Prompt interno guardado"));
     qc.invalidateQueries({ queryKey: ["job-internal", jobId] });
   }
+  const reserveFn = useServerFn(reserveFinalUpload);
+  const commitFn = useServerFn(commitFinalUpload);
   async function upload(list: FileList | null) {
     if (!list?.length) return;
     setBusy("upload");
+    let done = 0;
     try {
       for (const f of Array.from(list)) {
-        const path = `${j!.id}/try${uploadTry}/${crypto.randomUUID()}-${f.name.replace(/[^\w.-]+/g, "_")}`;
-        const up = await supabase.storage.from("deliverables").upload(path, f, f.type ? { contentType: f.type } : {});
+        if (!/\.mp4$/i.test(f.name)) { toast.error(t(`${f.name}: only MP4 finals`, `${f.name}: solo finales MP4`)); continue; }
+        // Server reservation first: refuses delivered/cancelled, stale attempt, wrong status and restricted jobs.
+        const r = await reserveFn({ data: { jobId: j!.id, tryNumber: Number(uploadTry) } });
+        if (!r.ok) { toast.error(finalReason(r.reason)); return; }
+        const up = await supabase.storage.from("deliverables").upload(r.path, f, { contentType: "video/mp4", upsert: false });
         if (up.error) throw up.error;
-        const { error } = await supabase.from("deliverables").insert({ job_id: j!.id, file_path: path, file_name: f.name, try_number: Number(uploadTry) });
-        if (error) throw error;
+        const c = await commitFn({ data: { reservationId: r.reservation_id, token: r.token, fileName: f.name } });
+        if (!c.ok) { toast.error(finalReason(c.reason)); return; }
+        done++;
       }
-      toast.success(t(`${list.length} file(s) uploaded`, `${list.length} archivo(s) subido(s)`));
-      qc.invalidateQueries({ queryKey: ["admin-deliv", jobId] });
-    } catch (e) { toast.error(errMsg(e)); } finally { setBusy(null); }
+      if (done) toast.success(t(`${done} final(s) verified and saved`, `${done} final(es) verificado(s) y guardado(s)`));
+    } catch (e) { toast.error(errMsg(e)); } finally { setBusy(null); qc.invalidateQueries({ queryKey: ["admin-deliv", jobId] }); }
+  }
+  function finalReason(r: string) {
+    const m: Record<string, [string, string]> = {
+      terminal: ["Job is delivered or cancelled — finals are locked", "El trabajo está entregado o cancelado — finales bloqueados"],
+      wrong_status: ["Finals can be added only while generating, in QA or revision", "Solo se agregan finales en generación, QA o revisión"],
+      stale_attempt: ["That try is not the current attempt", "Ese intento no es el actual"],
+      segment_restricted: ["Limited-segment job: held until trim evidence exists", "Trabajo con segmento limitado: retenido hasta tener evidencia de recorte"],
+      unmeasured_length: ["Final length could not be measured — not accepted", "No se pudo medir la duración del final — no aceptado"],
+      too_long: ["Final is longer than 30 s", "El final dura más de 30 s"],
+      malformed: ["File is not a valid MP4", "El archivo no es un MP4 válido"],
+      object_changed: ["File changed during verification — upload again", "El archivo cambió durante la verificación — súbelo de nuevo"],
+      bad_size: ["File is empty or larger than 40 MB", "Archivo vacío o mayor de 40 MB"],
+    };
+    const x = m[r] ?? ["Could not save the final (" + r + ")", "No se pudo guardar el final (" + r + ")"];
+    return t(x[0], x[1]);
   }
   async function removeFile(id: string, path: string) {
     await supabase.storage.from("deliverables").remove([path]);
@@ -143,6 +167,7 @@ function AdminJob() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
+          {j && <LinkSourceUpload job={j} queryKey={["admin-job", jobId]} />}
           <SpooferSyncCard jobId={jobId} />
           <Card><CardHeader><CardTitle>{t("Estimated ready time", "Tiempo estimado")}</CardTitle></CardHeader><CardContent className="space-y-4"><JobEta jobId={jobId} /><JobEtaOverride jobId={jobId} /></CardContent></Card>
           <Card className="border-primary/40">
@@ -185,11 +210,11 @@ function AdminJob() {
               <div className="flex flex-wrap items-end gap-2">
                 <div className="space-y-1"><Label>{t("Try", "Intento")}</Label><Select value={uploadTry} onValueChange={setUploadTry}><SelectTrigger className="w-24"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="1">1</SelectItem><SelectItem value="2">2</SelectItem></SelectContent></Select></div>
                 <Label htmlFor="dl" className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-md bg-primary px-4 text-sm text-primary-foreground"><Upload className="h-4 w-4" />{busy === "upload" ? t("Uploading…", "Subiendo…") : t("Upload files", "Subir archivos")}</Label>
-                <input id="dl" type="file" multiple className="sr-only" onChange={(e) => { upload(e.target.files); e.target.value = ""; }} disabled={busy === "upload"} />
+                <input id="dl" type="file" accept="video/mp4" multiple className="sr-only" onChange={(e) => { upload(e.target.files); e.target.value = ""; }} disabled={busy === "upload"} />
               </div>
               {files.data?.length === 0 ? <Empty title={t("No deliverables yet", "Aún no hay entregables")} /> : <div className="divide-y divide-border">{files.data?.map((f) => (
                 <div key={f.id} className="flex items-center justify-between py-2 text-sm"><span>{f.file_name} <span className="text-muted-foreground">· {t("try", "intento")} {f.try_number}</span></span>
-                  <span className="flex gap-1"><Button size="sm" variant="ghost" onClick={() => open("deliverables", f.file_path)}>{t("Open", "Abrir")}</Button><Button size="sm" variant="ghost" onClick={() => removeFile(f.id, f.file_path)}>{t("Remove", "Eliminar")}</Button></span></div>
+                  <span className="flex gap-1"><Button size="sm" variant="ghost" onClick={() => open("deliverables", f.file_path)}>{t("Open", "Abrir")}</Button><Button size="sm" variant="ghost" disabled={!!f.sha256 || j.status === "delivered"} onClick={() => removeFile(f.id, f.file_path)}>{t("Remove", "Eliminar")}</Button></span></div>
               ))}</div>}
             </CardContent>
           </Card>

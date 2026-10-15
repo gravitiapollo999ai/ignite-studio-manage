@@ -1,3 +1,4 @@
+import { isRestrictedReason } from "./segment-reasons";
 // Pure, browser-safe helpers for the Studio ⇄ Spoofer sync contract (tested in spoofer-contract.test.ts).
 
 export const SPOOFER_DEFAULT_BASE_URL = "https://spoofer-suite.lovable.app";
@@ -73,10 +74,19 @@ export function decideCallback(current: string, next: string, jobTry: number, ca
 
 /** Any segment other than a measured-short whole clip restricts production (mirrors SQL is_segment_restricted). */
 export function isSegmentRestricted(reason: string | null | undefined): boolean {
-  return reason != null && reason !== "measured_short";
+  return isRestrictedReason(reason);
 }
 
 /** While segment transport is off, restricted jobs are held instead of pushed (no omission bypass). */
 export function shouldHoldForSegment(reason: string | null | undefined, transportOn: boolean): boolean {
   return isSegmentRestricted(reason) && !transportOn;
+}
+
+/** Hold decision in trusted server code (flag read from env by the caller). Flag OFF: every restricted job held.
+ *  Flag ON: restricted link jobs without verified uploaded source bytes stay held until a source is attached. */
+export function linkHoldReason(job: { segment_reason: string | null; source_type: string | null; source_sha256: string | null } | null, transportOn: boolean): "segment_transport_off" | "link_needs_upload" | null {
+  if (!job || !isSegmentRestricted(job.segment_reason)) return null;
+  if (!transportOn) return "segment_transport_off";
+  if (!job.source_sha256) return "link_needs_upload";
+  return null;
 }
